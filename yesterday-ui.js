@@ -128,5 +128,34 @@
     setTimeout(loadSavedRecord, 0);
   }).observe(dateDisplay, { childList: true, characterData: true, subtree: true });
 
+  const promptDetails = $('promptText')?.closest('details');
+  const pantrySettings = $('pantryOutput')?.closest('.two-col');
+  if (promptDetails && pantrySettings) {
+    const summary = promptDetails.querySelector('summary');
+    if (summary) summary.textContent = 'AIへの指示文・出力設定を編集する';
+    const resetRow = $('resetPrompt')?.closest('.buttons');
+    if (resetRow) resetRow.after(pantrySettings);
+    else promptDetails.appendChild(pantrySettings);
+  }
+
+  const useMealFieldsButton = $('useOutput');
+  const finalMenu = $('finalMenu');
+  if (useMealFieldsButton && finalMenu) {
+    useMealFieldsButton.textContent = '今日の食事欄を入れる';
+    useMealFieldsButton.onclick = () => {
+      const meals = [
+        ['朝', $('breakfastText')?.value],
+        ['昼', $('lunchText')?.value],
+        ['夕', $('dinnerText')?.value],
+        ['間食', $('snackText')?.value],
+      ];
+      finalMenu.value = meals
+        .map(([label, value]) => `${label}：${String(value || '').trim() || '未定'}`)
+        .join('\n');
+      finalMenu.dispatchEvent(new Event('input', { bubbles: true }));
+      finalMenu.focus();
+    };
+  }
+
   loadSavedRecord();
 })();
