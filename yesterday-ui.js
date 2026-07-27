@@ -53,19 +53,19 @@
     return rows.map(([label, value]) => `${label}：${value}`).join('\n');
   }
 
-  function savedText() {
-    return recordText(readHistory()[previousDateKey()]);
+  function savedRecord() {
+    return readHistory()[previousDateKey()] || null;
   }
 
-  function hasSavedRecord() {
-    return Boolean(readHistory()[previousDateKey()]);
+  function savedText() {
+    return recordText(savedRecord());
   }
 
   function updateIndicators() {
     const saved = textarea.dataset.savedValue || '';
     const current = textarea.value.trim();
 
-    if (!hasSavedRecord()) {
+    if (!savedRecord()) {
       warning.hidden = false;
       warning.textContent = '⚠️昨日分未入力';
     } else {
@@ -89,17 +89,39 @@
     updateIndicators();
   }
 
+  function snapshot() {
+    const record = savedRecord();
+    return { exists: Boolean(record), text: recordText(record) };
+  }
+
+  function historyChanged(before) {
+    const after = snapshot();
+    return before.exists !== after.exists || before.text !== after.text;
+  }
+
   textarea.addEventListener('input', updateIndicators);
   resetButton.addEventListener('click', loadSavedRecord);
 
   $('saveYesterday')?.addEventListener('click', () => {
-    setTimeout(loadSavedRecord, 0);
+    const before = snapshot();
+    const attempted = textarea.value.trim();
+    setTimeout(() => {
+      const after = snapshot();
+      if ((after.exists && after.text.trim() === attempted) || historyChanged(before)) {
+        loadSavedRecord();
+      } else {
+        updateIndicators();
+      }
+    }, 0);
   });
 
   document.addEventListener('click', (event) => {
-    if (event.target.closest('[data-history-delete]')) {
-      setTimeout(loadSavedRecord, 0);
-    }
+    if (!event.target.closest('[data-history-delete]')) return;
+    const before = snapshot();
+    setTimeout(() => {
+      if (historyChanged(before)) loadSavedRecord();
+      else updateIndicators();
+    }, 0);
   });
 
   new MutationObserver(() => {
