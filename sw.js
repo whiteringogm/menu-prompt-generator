@@ -1,4 +1,4 @@
-const CACHE = 'menu-prompt-generator-v5.1.5';
+const CACHE = 'menu-prompt-generator-v5.1.5-hotfix';
 const ASSETS = ['./', './index.html', './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
