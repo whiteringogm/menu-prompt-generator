@@ -6,218 +6,41 @@
   <meta name="theme-color" content="#8d5f45">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="食事相談">
-  <title>食事相談補助ツール v5.1.0</title>
+  <title>食事相談補助ツール v5.1.1</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <style>
-    :root{--bg:#f7f3ef;--card:#fffaf5;--white:#fff;--text:#2f2925;--muted:#756b63;--line:#ddd1c6;--accent:#8d5f45;--soft:#f0e3d9;--danger:#a64242;--shadow:0 8px 22px rgba(58,42,31,.08);--radius:16px}
-    *{box-sizing:border-box}
-    html,body{width:100%;max-width:100%;overflow-x:hidden}
-    html{background:var(--bg);overscroll-behavior-x:none}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.55;touch-action:pan-y}
-    button,input,textarea,select{font:inherit;max-width:100%;min-width:0}
-    button{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;color:var(--text);cursor:pointer;white-space:normal;overflow-wrap:anywhere}
-    button:active{transform:translateY(1px)}
-    button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:800}
-    button.soft{background:var(--soft);border-color:var(--soft)}
-    button.small{min-height:34px;font-size:12px;padding:5px 9px}
-    button.danger{color:var(--danger);border-color:#e8caca;background:#fffafa}
-    input,textarea,select{display:block;width:100%;border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;color:var(--text)}
-    textarea{min-height:78px;resize:vertical}
-    label{font-weight:700;font-size:14px}
-    header{position:sticky;top:0;z-index:10;background:rgba(247,243,239,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
-    .head{width:100%;max-width:1120px;margin:auto;padding:11px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:0}
-    .head>div{min-width:0;max-width:calc(100vw - 130px)}
-    h1{font-size:clamp(19px,5.8vw,27px);margin:0;line-height:1.2;overflow-wrap:anywhere}
-    h2{font-size:17px;margin:0 0 8px}
-    h3{font-size:15px;margin:12px 0 6px}
-    .sub,.help,.mini{color:var(--muted);font-size:13px;margin:4px 0;overflow-wrap:anywhere}
-    .status{max-width:116px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:12px;text-align:center;white-space:normal}
-    main{width:100%;max-width:1120px;margin:auto;padding:12px}
-    .layout{display:block;width:100%;max-width:100%;min-width:0}
-    .column{width:100%;max-width:100%;min-width:0}
-    section,.meal-card,details.card{width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin:0 0 12px;box-shadow:var(--shadow)}
-    details.card>summary{font-weight:850;cursor:pointer;list-style:none}
-    details.card>summary::-webkit-details-marker{display:none}
-    details.card>summary::after{content:'＋';float:right;color:var(--muted)}
-    details.card[open]>summary::after{content:'−'}
-    .date{font-size:clamp(24px,7vw,34px);font-weight:900;margin-bottom:6px}
-    .row,.row-3,.meal-grid,.two-col,.edit-grid,.plan-input{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;max-width:100%;min-width:0}
-    .buttons,.chips,.line,.switch-line{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:8px;width:100%;max-width:100%;min-width:0}
-    .title{font-weight:850;font-size:16px;margin-bottom:6px}
-    .switch{display:inline-flex;gap:6px;align-items:center;flex-shrink:0}
-    .switch input{position:absolute;opacity:0}
-    .track{width:54px;height:29px;border-radius:999px;background:#d8cec5;position:relative;flex:0 0 auto}
-    .track::before{content:'';position:absolute;left:3px;top:3px;width:23px;height:23px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
-    .switch input:checked+.track{background:var(--accent)}
-    .switch input:checked+.track::before{transform:translateX(25px)}
-    .chip{display:inline-flex;gap:6px;align-items:center;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
-    button.chip{min-height:36px}
-    .tag{display:inline-block;margin-left:6px;background:var(--soft);border-radius:999px;padding:2px 7px;font-size:12px;vertical-align:middle}
-    .pause-tag{background:#eee6b8}
-    .count{display:inline-block;margin-left:7px;color:var(--muted);font-size:12px;font-weight:700}
-    .item{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:9px;margin-top:7px;width:100%;max-width:100%;min-width:0;overflow-wrap:anywhere}
-    .item.paused{background:#fffdf0;border-style:dashed}
-    .item-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;min-width:0}
-    .item-actions{display:flex;flex-wrap:wrap;gap:6px}
-    .empty{padding:9px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);font-size:13px;background:rgba(255,255,255,.55)}
-    .plan-group{border-top:1px dashed var(--line);padding-top:6px;margin-top:10px}
-    .plan-group:first-child{border-top:0;margin-top:4px}
-    .out{min-height:330px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap}
-    .box{width:100%;max-width:100%;min-width:0;min-height:120px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px;white-space:pre-wrap;overflow-wrap:anywhere}
-    .manual{height:7em;min-height:7em;max-height:7em;overflow:auto}
-    .pantry-category{border:1px solid var(--line);border-radius:12px;padding:9px;background:#ffffff80;margin-top:9px;overflow:hidden}
-    .pantry-category>summary{font-weight:850;cursor:pointer}
-    .pantry-note{font-size:12px;color:var(--muted);white-space:pre-wrap;margin:6px 0}
-    .toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--text);color:#fff;border-radius:999px;padding:9px 14px;transition:.16s;max-width:calc(100vw - 24px);z-index:30;text-align:center}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    .history-entry{padding:9px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:8px}
-    .history-summary{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
-    @media(min-width:900px){
-      main{padding:16px}
-      .layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:14px;align-items:start}
-      .row-3{grid-template-columns:minmax(0,1fr) 150px auto}
-      .plan-input{grid-template-columns:minmax(0,1fr) 170px auto}
-      .meal-grid{grid-template-columns:minmax(0,1fr) auto}
-      .two-col{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-      .item{grid-template-columns:minmax(0,1fr) minmax(280px,.75fr)}
-      .item-controls{grid-template-columns:minmax(130px,170px) minmax(0,1fr)}
-      .edit-grid{grid-template-columns:minmax(0,1fr) 175px auto}
-      .head>div{max-width:none}
-      .status{max-width:none}
-      .secondary{position:sticky;top:78px;max-height:calc(100vh - 90px);overflow:auto;padding-right:2px}
-    }
+    :root{--bg:#f7f3ef;--card:#fffaf5;--white:#fff;--text:#2f2925;--muted:#756b63;--line:#ddd1c6;--accent:#8d5f45;--soft:#f0e3d9;--danger:#a64242;--warn:#8a5700;--warn-bg:#fff3c9;--shadow:0 8px 22px rgba(58,42,31,.08);--radius:16px}
+    *{box-sizing:border-box}html,body{width:100%;max-width:100%;overflow-x:hidden}html{background:var(--bg);overscroll-behavior-x:none}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.55;touch-action:pan-y}
+    button,input,textarea,select{font:inherit;max-width:100%;min-width:0}button{min-height:42px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;color:var(--text);cursor:pointer;white-space:normal;overflow-wrap:anywhere}button:active{transform:translateY(1px)}button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:800}button.soft{background:var(--soft);border-color:var(--soft)}button.small{min-height:34px;font-size:12px;padding:5px 9px}button.danger{color:var(--danger);border-color:#e8caca;background:#fffafa}
+    input,textarea,select{display:block;width:100%;border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px;color:var(--text)}textarea{min-height:78px;resize:vertical}label{font-weight:700;font-size:14px}[hidden]{display:none!important}
+    header{position:sticky;top:0;z-index:10;background:rgba(247,243,239,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}.head{width:100%;max-width:1120px;margin:auto;padding:11px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;min-width:0}.head>div{min-width:0;max-width:calc(100vw - 130px)}h1{font-size:clamp(19px,5.8vw,27px);margin:0;line-height:1.2;overflow-wrap:anywhere}h2{font-size:17px;margin:0 0 8px}h3{font-size:15px;margin:12px 0 6px}.sub,.help,.mini{color:var(--muted);font-size:13px;margin:4px 0;overflow-wrap:anywhere}.status{max-width:116px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:12px;text-align:center;white-space:normal}
+    main{width:100%;max-width:1120px;margin:auto;padding:12px}.layout{display:block;width:100%;max-width:100%;min-width:0}.column{width:100%;max-width:100%;min-width:0}section,.meal-card,details.card{width:100%;max-width:100%;min-width:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin:0 0 12px;box-shadow:var(--shadow)}details.card>summary{font-weight:850;cursor:pointer;list-style:none}details.card>summary::-webkit-details-marker{display:none}details.card>summary::after{content:'＋';float:right;color:var(--muted)}details.card[open]>summary::after{content:'−'}
+    .date{font-size:clamp(24px,7vw,34px);font-weight:900;margin-bottom:6px}.row,.row-3,.meal-grid,.two-col,.edit-grid,.plan-input{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:100%;max-width:100%;min-width:0}.buttons,.chips,.line,.switch-line{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:8px;width:100%;max-width:100%;min-width:0}.title{font-weight:850;font-size:16px;margin-bottom:6px}.switch{display:inline-flex;gap:6px;align-items:center;flex-shrink:0}.switch input{position:absolute;opacity:0}.track{width:54px;height:29px;border-radius:999px;background:#d8cec5;position:relative;flex:0 0 auto}.track::before{content:'';position:absolute;left:3px;top:3px;width:23px;height:23px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 2px 5px rgba(0,0,0,.2)}.switch input:checked+.track{background:var(--accent)}.switch input:checked+.track::before{transform:translateX(25px)}
+    .chip{display:inline-flex;gap:6px;align-items:center;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 10px}button.chip{min-height:36px}.tag{display:inline-block;margin-left:6px;background:var(--soft);border-radius:999px;padding:2px 7px;font-size:12px;vertical-align:middle}.pause-tag{background:#eee6b8}.count{display:inline-block;margin-left:7px;color:var(--muted);font-size:12px;font-weight:700}.item{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:9px;margin-top:7px;width:100%;max-width:100%;min-width:0;overflow-wrap:anywhere}.item.paused{background:#fffdf0;border-style:dashed}.item-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;min-width:0}.item-actions{display:flex;flex-wrap:wrap;gap:6px}.empty{padding:9px;border:1px dashed var(--line);border-radius:11px;color:var(--muted);font-size:13px;background:rgba(255,255,255,.55)}.plan-group{border-top:1px dashed var(--line);padding-top:6px;margin-top:10px}.plan-group:first-child{border-top:0;margin-top:4px}
+    .out{min-height:330px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap}.manual{height:9em;min-height:9em;max-height:16em;overflow:auto}.pantry-category{border:1px solid var(--line);border-radius:12px;padding:9px;background:#ffffff80;margin-top:9px;overflow:hidden}.pantry-category>summary{font-weight:850;cursor:pointer}.pantry-note{font-size:12px;color:var(--muted);white-space:pre-wrap;margin:6px 0}.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--text);color:#fff;border-radius:999px;padding:9px 14px;transition:.16s;max-width:calc(100vw - 24px);z-index:30;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.history-entry{padding:9px;border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:8px}.history-summary{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+    .warning-badge{display:inline-flex;align-items:center;min-height:34px;padding:5px 10px;border:1px solid #e7c46b;border-radius:999px;background:var(--warn-bg);color:var(--warn);font-size:13px;font-weight:800}.edit-state{font-size:12px;font-weight:800}.edit-state[data-state="dirty"]{color:var(--danger)}.edit-state[data-state="saved"]{color:#56734c}.edit-state[data-state="empty"]{color:var(--muted)}
+    @media(min-width:900px){main{padding:16px}.layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:14px;align-items:start}.row-3{grid-template-columns:minmax(0,1fr) 150px auto}.plan-input{grid-template-columns:minmax(0,1fr) 170px auto}.meal-grid{grid-template-columns:minmax(0,1fr) auto}.two-col{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.item{grid-template-columns:minmax(0,1fr) minmax(280px,.75fr)}.item-controls{grid-template-columns:minmax(130px,170px) minmax(0,1fr)}.edit-grid{grid-template-columns:minmax(0,1fr) 175px auto}.head>div{max-width:none}.status{max-width:none}.secondary{position:sticky;top:78px;max-height:calc(100vh - 90px);overflow:auto;padding-right:2px}}
   </style>
 </head>
 <body>
-<header>
-  <div class="head">
-    <div><h1>食事相談補助ツール v5.1.0</h1><p class="sub">在庫の区分を動かせる版。</p></div>
-    <span id="saveStatus" class="status">読み込み中</span>
-  </div>
-</header>
-<main>
-  <div class="layout">
-    <div class="column primary-column">
-      <section>
-        <h2>日付</h2>
-        <div id="dateDisplay" class="date"></div>
-        <div class="buttons">
-          <button id="prevDay" class="small">前日</button>
-          <button id="todayBtn" class="small">今日に戻す</button>
-          <button id="nextDay" class="small">翌日</button>
-        </div>
-        <details><summary class="mini">日付を手動で変更する</summary><input id="dateInput" type="date"></details>
-      </section>
-
-      <section>
-        <h2>今日の補足・相談したいこと</h2>
-        <textarea id="dailyNote" placeholder="例：夜に酒を飲みたい／いま10時で空腹"></textarea>
-      </section>
-
-      <section>
-        <h2>今日食べるもの・食べたもの</h2>
-        <div class="switch-line">
-          <b>いつものボタン</b><span>上書き</span>
-          <label class="switch"><input id="appendMode" type="checkbox"><span class="track"></span><span id="appendModeText">上書き</span></label>
-          <span>追記</span>
-        </div>
-        <div class="buttons"><button id="sameAllMeals" class="soft">朝昼夕間食を昨日と同じ</button></div>
-        <div id="meals"></div>
-      </section>
-
-      <section>
-        <h2>食材・希望リスト</h2>
-        <p class="help">登録口はひとつ。期限が近づいたら区分をその場で変更できる。「今日は使わない」は翌日に自動解除。</p>
-        <div class="plan-input">
-          <div><label for="planName">品名</label><input id="planName" placeholder="例：唐揚げ（残2個）"></div>
-          <div><label for="planTag">区分</label><select id="planTag"><option>今週の候補</option><option>近日中</option><option>今日中</option><option>願望</option><option>避けたい</option><option>在庫切れ</option></select></div>
-          <button id="addPlan" class="primary">追加</button>
-        </div>
-        <div id="planGroups"></div>
-      </section>
-
-      <section>
-        <h2>AI相談用テキスト</h2>
-        <div class="switch-line">
-          <b>AIへの指示文</b><span>OFF</span>
-          <label class="switch"><input id="promptOn" type="checkbox"><span class="track"></span><span id="promptState">ON</span></label>
-          <span>ON</span>
-        </div>
-        <details open>
-          <summary class="mini">AIへの指示文を編集する</summary>
-          <textarea id="promptText"></textarea>
-          <div class="buttons"><button id="resetPrompt" class="small">標準に戻す</button></div>
-        </details>
-        <div class="two-col">
-          <label class="switch-line"><input id="pantryOutput" type="checkbox"> 常備在庫表を相談文へ出力</label>
-          <label class="switch-line"><input id="includeSeasonings" type="checkbox"> 調味料も含める</label>
-        </div>
-        <textarea id="outputText" class="out" readonly></textarea>
-        <div class="buttons">
-          <button id="generateText" class="primary">相談文を生成</button>
-          <button id="copyText">コピー</button>
-          <button id="selectText">全選択</button>
-        </div>
-      </section>
-    </div>
-
-    <aside class="column secondary">
-      <section>
-        <h2>今日の確定メニューを保存</h2>
-        <textarea id="finalMenu" placeholder="AIの最終メニューをここへ貼り付け"></textarea>
-        <div class="buttons">
-          <button id="pasteFinal">貼り付け</button>
-          <button id="saveToday" class="primary">今日として保存</button>
-          <button id="useOutput">相談文を入れる</button>
-        </div>
-      </section>
-
-      <section>
-        <h2>昨日食べたもの</h2>
-        <div id="yesterdayBox" class="box"></div>
-        <textarea id="yesterdayEdit" class="manual" placeholder="昨日の最終メニューを貼る"></textarea>
-        <div class="buttons">
-          <button id="saveYesterday" class="primary">昨日として保存</button>
-          <button id="loadYesterdayToEdit">表示内容を編集欄へ</button>
-          <button id="reloadYesterday">再読み込み</button>
-        </div>
-      </section>
-
-      <details class="card" open><summary>いつものメニュー編集</summary><div id="usualEditor"></div></details>
-
-      <details class="card">
-        <summary>常備在庫表</summary>
-        <p class="help">相談文への出力はデフォルトOFF。登録済み項目はその場で編集できる。</p>
-        <div class="row-3">
-          <input id="newCategoryName" placeholder="新しい分類名">
-          <label class="switch-line"><input id="newCategorySeasoning" type="checkbox"> 調味料系</label>
-          <button id="addCategory" class="primary">分類追加</button>
-        </div>
-        <div id="pantryEditor"></div>
-      </details>
-
-      <details class="card">
-        <summary>JSONバックアップ</summary>
-        <div class="buttons">
-          <button id="exportAll">全体JSON書き出し</button>
-          <button id="importBtn">JSON読み込み</button>
-          <input id="importFile" type="file" accept="application/json,.json" hidden>
-        </div>
-        <h3>月別バックアップ</h3>
-        <p class="mini">選んだ月の履歴・下書きだけを書き出す。削除は別操作。</p>
-        <select id="monthSelect"></select>
-        <div class="buttons">
-          <button id="exportMonth">この月だけ書き出し</button>
-          <button id="deleteMonth" class="danger">この月だけ削除</button>
-        </div>
-      </details>
-
-      <details class="card"><summary>保存履歴</summary><div id="historyList"></div></details>
-    </aside>
-  </div>
-</main>
+<header><div class="head"><div><h1>食事相談補助ツール v5.1.1</h1><p class="sub">在庫の区分を動かせる版。</p></div><span id="saveStatus" class="status">読み込み中</span></div></header>
+<main><div class="layout"><div class="column primary-column">
+  <section><h2>日付</h2><div id="dateDisplay" class="date"></div><div class="buttons"><button id="prevDay" class="small">前日</button><button id="todayBtn" class="small">今日に戻す</button><button id="nextDay" class="small">翌日</button></div><details><summary class="mini">日付を手動で変更する</summary><input id="dateInput" type="date"></details></section>
+  <section><h2>今日の補足・相談したいこと</h2><textarea id="dailyNote" placeholder="例：夜に酒を飲みたい／いま10時で空腹"></textarea></section>
+  <section><h2>今日食べるもの・食べたもの</h2><div class="switch-line"><b>いつものボタン</b><span>上書き</span><label class="switch"><input id="appendMode" type="checkbox"><span class="track"></span><span id="appendModeText">上書き</span></label><span>追記</span></div><div class="buttons"><button id="sameAllMeals" class="soft">朝昼夕間食を昨日と同じ</button></div><div id="meals"></div></section>
+  <section><h2>食材・希望リスト</h2><p class="help">登録口はひとつ。期限が近づいたら区分をその場で変更できる。「今日は使わない」は翌日に自動解除。</p><div class="plan-input"><div><label for="planName">品名</label><input id="planName" placeholder="例：唐揚げ（残2個）"></div><div><label for="planTag">区分</label><select id="planTag"><option>今週の候補</option><option>近日中</option><option>今日中</option><option>願望</option><option>避けたい</option><option>在庫切れ</option></select></div><button id="addPlan" class="primary">追加</button></div><div id="planGroups"></div></section>
+  <section><h2>AI相談用テキスト</h2><div class="switch-line"><b>AIへの指示文</b><span>OFF</span><label class="switch"><input id="promptOn" type="checkbox"><span class="track"></span><span id="promptState">ON</span></label><span>ON</span></div><details open><summary class="mini">AIへの指示文を編集する</summary><textarea id="promptText"></textarea><div class="buttons"><button id="resetPrompt" class="small">標準に戻す</button></div></details><div class="two-col"><label class="switch-line"><input id="pantryOutput" type="checkbox"> 常備在庫表を相談文へ出力</label><label class="switch-line"><input id="includeSeasonings" type="checkbox"> 調味料も含める</label></div><textarea id="outputText" class="out" readonly></textarea><div class="buttons"><span id="yesterdayWarning" class="warning-badge" hidden aria-live="polite"></span><button id="generateText" class="primary">相談文を生成</button><button id="copyText">コピー</button><button id="selectText">全選択</button></div></section>
+</div><aside class="column secondary">
+  <section><h2>今日の確定メニューを保存</h2><textarea id="finalMenu" placeholder="AIの最終メニューをここへ貼り付け"></textarea><div class="buttons"><button id="pasteFinal">貼り付け</button><button id="saveToday" class="primary">今日として保存</button><button id="useOutput">相談文を入れる</button></div></section>
+  <section><h2>昨日食べたもの</h2><p class="help">保存済みならここへ表示。未登録なら空欄。直接編集して保存できる。</p><div id="yesterdayBox" hidden></div><textarea id="yesterdayEdit" class="manual" placeholder="昨日の最終メニューを入力"></textarea><div class="buttons"><button id="saveYesterday" class="primary">昨日として保存</button><button id="resetYesterday">保存内容に戻す</button><span id="yesterdayEditStatus" class="edit-state" aria-live="polite"></span><button id="loadYesterdayToEdit" hidden>表示内容を編集欄へ</button><button id="reloadYesterday" hidden>再読み込み</button></div></section>
+  <details class="card" open><summary>いつものメニュー編集</summary><div id="usualEditor"></div></details>
+  <details class="card"><summary>常備在庫表</summary><p class="help">相談文への出力はデフォルトOFF。登録済み項目はその場で編集できる。</p><div class="row-3"><input id="newCategoryName" placeholder="新しい分類名"><label class="switch-line"><input id="newCategorySeasoning" type="checkbox"> 調味料系</label><button id="addCategory" class="primary">分類追加</button></div><div id="pantryEditor"></div></details>
+  <details class="card"><summary>JSONバックアップ</summary><div class="buttons"><button id="exportAll">全体JSON書き出し</button><button id="importBtn">JSON読み込み</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><h3>月別バックアップ</h3><p class="mini">選んだ月の履歴・下書きだけを書き出す。削除は別操作。</p><select id="monthSelect"></select><div class="buttons"><button id="exportMonth">この月だけ書き出し</button><button id="deleteMonth" class="danger">この月だけ削除</button></div></details>
+  <details class="card"><summary>保存履歴</summary><div id="historyList"></div></details>
+</aside></div></main>
 <div id="toast" class="toast"></div>
 <script src="app.js?v=510"></script>
+<script src="yesterday-ui.js?v=511"></script>
 </body>
 </html>
