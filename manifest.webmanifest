@@ -1,0 +1,12 @@
+{
+  "name": "食事相談補助ツール",
+  "short_name": "食事相談",
+  "description": "AIとの毎日の食事相談を続けるための入力・記録ツール",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ef",
+  "theme_color": "#8d5f45",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
