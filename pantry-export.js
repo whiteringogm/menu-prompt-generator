@@ -1,6 +1,10 @@
 (() => {
   'use strict';
 
+  document.title = document.title.replace(/v5\.1\.4/g, 'v5.1.5');
+  const appTitle = document.querySelector('h1');
+  if (appTitle) appTitle.textContent = appTitle.textContent.replace(/v5\.1\.4/g, 'v5.1.5');
+
   const STORAGE_KEY = 'menuPromptGenerator.v5.pantry';
   const pantryEditor = document.getElementById('pantryEditor');
   if (!pantryEditor) return;
@@ -23,7 +27,8 @@
 
   function readRenderedPantry() {
     const categories = [...pantryEditor.querySelectorAll('.pantry-category')].map((node) => {
-      const summary = node.querySelector(':scope > summary');
+      const firstChild = node.firstElementChild;
+      const summary = firstChild?.tagName === 'SUMMARY' ? firstChild : node.querySelector('summary');
       const seasoning = Boolean(summary?.querySelector('.tag'));
       const summaryCopy = summary?.cloneNode(true);
       summaryCopy?.querySelectorAll('.tag').forEach((tag) => tag.remove());
