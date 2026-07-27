@@ -1,6 +1,10 @@
 (() => {
   'use strict';
 
+  document.title = document.title.replace(/v5\.1\.[45]/g, 'v5.1.6');
+  const appTitle = document.querySelector('h1');
+  if (appTitle) appTitle.textContent = appTitle.textContent.replace(/v5\.1\.[45]/g, 'v5.1.6');
+
   const HISTORY_KEY = 'menuPromptGenerator.v5.history';
   const $ = (id) => document.getElementById(id);
   const textarea = $('yesterdayEdit');
@@ -137,6 +141,13 @@
     if (resetRow) resetRow.after(pantrySettings);
     else promptDetails.appendChild(pantrySettings);
   }
+  if (promptDetails) promptDetails.open = false;
+
+  const usualMenuDetails = [...document.querySelectorAll('details.card')].find((node) => {
+    const summary = node.firstElementChild;
+    return summary?.tagName === 'SUMMARY' && summary.textContent.trim() === 'いつものメニュー編集';
+  });
+  if (usualMenuDetails) usualMenuDetails.open = false;
 
   const useMealFieldsButton = $('useOutput');
   const finalMenu = $('finalMenu');
