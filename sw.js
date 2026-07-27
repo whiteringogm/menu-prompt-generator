@@ -1,5 +1,5 @@
-const CACHE = 'menu-prompt-generator-v5.1.1';
-const ASSETS = ['./', './index.html', './app.js?v=510', './yesterday-ui.js?v=511', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'menu-prompt-generator-v5.1.2';
+const ASSETS = ['./', './index.html', './app.js?v=510', './yesterday-ui.js?v=512', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
