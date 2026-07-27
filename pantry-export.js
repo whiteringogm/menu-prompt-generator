@@ -21,14 +21,37 @@
 
   const status = document.getElementById('pantryExportStatus');
 
+  function readRenderedPantry() {
+    const categories = [...pantryEditor.querySelectorAll('.pantry-category')].map((node) => {
+      const summary = node.querySelector(':scope > summary');
+      const seasoning = Boolean(summary?.querySelector('.tag'));
+      const summaryCopy = summary?.cloneNode(true);
+      summaryCopy?.querySelectorAll('.tag').forEach((tag) => tag.remove());
+      const name = String(summaryCopy?.textContent || '未分類').trim() || '未分類';
+      const note = String(node.querySelector('.pantry-note')?.textContent || '').trim();
+      const items = [...node.querySelectorAll('.item')]
+        .map((item) => {
+          const input = item.querySelector('[data-pantry-edit-name]');
+          if (input) return input.value;
+          return item.firstElementChild?.textContent || '';
+        })
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+      return { name, seasoning, note, items };
+    });
+    return { categories };
+  }
+
   function readPantry() {
     try {
       const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      return Array.isArray(value?.categories) ? value : { categories: [] };
+      if (Array.isArray(value?.categories) && value.categories.length) return value;
     } catch (error) {
       console.warn('pantry read failed', error);
-      return { categories: [] };
     }
+
+    const rendered = readRenderedPantry();
+    return rendered.categories.length ? rendered : { categories: [] };
   }
 
   function localDateKey() {
