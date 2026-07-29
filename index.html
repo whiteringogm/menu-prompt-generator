@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#8d5f45">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="食事相談">
-  <title>食事相談補助ツール v5.1.4</title>
+  <title>食事相談補助ツール v5.1.7</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <style>
@@ -24,22 +24,23 @@
   </style>
 </head>
 <body>
-<header><div class="head"><div><h1>食事相談補助ツール v5.1.4</h1><p class="sub">在庫の区分を動かせる版。</p></div><span id="saveStatus" class="status">読み込み中</span></div></header>
+<header><div class="head"><div><h1>食事相談補助ツール v5.1.7</h1><p class="sub">在庫の区分を動かせる版。</p></div><span id="saveStatus" class="status">読み込み中</span></div></header>
 <main><div class="layout"><div class="column primary-column">
   <section><h2>日付</h2><div id="dateDisplay" class="date"></div><div class="buttons"><button id="prevDay" class="small">前日</button><button id="todayBtn" class="small">今日に戻す</button><button id="nextDay" class="small">翌日</button></div><details><summary class="mini">日付を手動で変更する</summary><input id="dateInput" type="date"></details></section>
   <section><h2>今日の補足・相談したいこと</h2><textarea id="dailyNote" placeholder="例：夜に酒を飲みたい／いま10時で空腹"></textarea></section>
   <section><h2>今日食べるもの・食べたもの</h2><div class="switch-line"><b>いつものボタン</b><span>上書き</span><label class="switch"><input id="appendMode" type="checkbox"><span class="track"></span><span id="appendModeText">上書き</span></label><span>追記</span></div><div class="buttons"><button id="sameAllMeals" class="soft">朝昼夕間食を昨日と同じ</button></div><div id="meals"></div></section>
-  <section><h2>食材・希望リスト</h2><p class="help">登録口はひとつ。期限が近づいたら区分をその場で変更できる。「今日は使わない」は翌日に自動解除。</p><div class="plan-input"><div><label for="planName">品名</label><input id="planName" placeholder="例：唐揚げ（残2個）"></div><div><label for="planTag">区分</label><select id="planTag"><option>今週の候補</option><option>近日中</option><option>今日中</option><option>願望</option><option>避けたい</option><option>在庫切れ</option></select></div><button id="addPlan" class="primary">追加</button></div><div id="planGroups"></div></section>
-  <section><h2>AI相談用テキスト</h2><div class="switch-line"><b>AIへの指示文</b><span>OFF</span><label class="switch"><input id="promptOn" type="checkbox"><span class="track"></span><span id="promptState">ON</span></label><span>ON</span></div><details open><summary class="mini">AIへの指示文・出力設定を編集する</summary><textarea id="promptText"></textarea><div class="buttons"><button id="resetPrompt" class="small">標準に戻す</button></div></details><div class="two-col"><label class="switch-line"><input id="pantryOutput" type="checkbox"> 常備在庫表を相談文へ出力</label><label class="switch-line"><input id="includeSeasonings" type="checkbox"> 調味料も含める</label></div><textarea id="outputText" class="out" readonly></textarea><div class="buttons"><span id="yesterdayWarning" class="warning-badge" hidden aria-live="polite"></span><button id="generateText" class="primary">相談文を生成</button><button id="copyText">コピー</button><button id="selectText">全選択</button></div></section>
+  <section><h2>食材・希望リスト</h2><p class="help">食材リストは日付をまたいで共通。「今日は使わない」だけ日ごとに保持する。</p><div class="plan-input"><div><label for="planName">品名</label><input id="planName" placeholder="例：唐揚げ（残2個）"></div><div><label for="planTag">区分</label><select id="planTag"><option>今週の候補</option><option>近日中</option><option>今日中</option><option>願望</option><option>避けたい</option><option>在庫切れ</option></select></div><button id="addPlan" class="primary">追加</button></div><div id="planGroups"></div></section>
+  <section><h2>AI相談用テキスト</h2><div class="switch-line"><b>AIへの指示文</b><span>OFF</span><label class="switch"><input id="promptOn" type="checkbox"><span class="track"></span><span id="promptState">ON</span></label><span>ON</span></div><details><summary class="mini">AIへの指示文・出力設定を編集する</summary><textarea id="promptText"></textarea><div class="buttons"><button id="resetPrompt" class="small">標準に戻す</button></div><div class="two-col"><label class="switch-line"><input id="pantryOutput" type="checkbox"> 常備在庫表を相談文へ出力</label><label class="switch-line"><input id="includeSeasonings" type="checkbox"> 調味料も含める</label></div></details><textarea id="outputText" class="out" readonly></textarea><div class="buttons"><span id="yesterdayWarning" class="warning-badge" hidden aria-live="polite"></span><button id="generateText" class="primary">相談文を生成</button><button id="copyText">コピー</button><button id="selectText">全選択</button></div></section>
 </div><aside class="column secondary">
   <section><h2>今日の確定メニューを保存</h2><textarea id="finalMenu" placeholder="AIの最終メニューをここへ貼り付け"></textarea><div class="buttons"><button id="pasteFinal">貼り付け</button><button id="saveToday" class="primary">今日として保存</button><button id="useOutput">今日の食事欄を入れる</button></div></section>
   <section><h2>昨日食べたもの</h2><p class="help">保存済みならここへ表示。未登録なら空欄。直接編集して保存できる。</p><div id="yesterdayBox" hidden></div><textarea id="yesterdayEdit" class="manual" placeholder="昨日の最終メニューを入力"></textarea><div class="buttons"><button id="saveYesterday" class="primary">昨日として保存</button><button id="resetYesterday">保存内容に戻す</button><span id="yesterdayEditStatus" class="edit-state" aria-live="polite"></span><button id="loadYesterdayToEdit" hidden>表示内容を編集欄へ</button><button id="reloadYesterday" hidden>再読み込み</button></div></section>
-  <details class="card" open><summary>いつものメニュー編集</summary><div id="usualEditor"></div></details>
+  <details class="card"><summary>いつものメニュー編集</summary><div id="usualEditor"></div></details>
   <details class="card"><summary>常備在庫表</summary><p class="help">相談文への出力はデフォルトOFF。登録済み項目はその場で編集できる。</p><div class="row-3"><input id="newCategoryName" placeholder="新しい分類名"><label class="switch-line"><input id="newCategorySeasoning" type="checkbox"> 調味料系</label><button id="addCategory" class="primary">分類追加</button></div><div id="pantryEditor"></div></details>
   <details class="card"><summary>JSONバックアップ</summary><div class="buttons"><button id="exportAll">全体JSON書き出し</button><button id="importBtn">JSON読み込み</button><input id="importFile" type="file" accept="application/json,.json" hidden></div><h3>月別バックアップ</h3><p class="mini">選んだ月の履歴・下書きだけを書き出す。削除は別操作。</p><select id="monthSelect"></select><div class="buttons"><button id="exportMonth">この月だけ書き出し</button><button id="deleteMonth" class="danger">この月だけ削除</button></div></details>
   <details class="card"><summary>保存履歴</summary><div id="historyList"></div></details>
 </aside></div></main>
 <div id="toast" class="toast"></div>
+<script src="plan-sync.js?v=517"></script>
 <script src="app.js?v=510"></script>
 <script src="yesterday-ui.js?v=513"></script>
 <script src="pantry-export.js?v=514"></script>
