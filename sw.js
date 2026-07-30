@@ -1,5 +1,6 @@
-const CACHE = 'menu-prompt-generator-v5.1.7';
-const ASSETS = ['./', './index.html', './plan-sync.js?v=517', './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'menu-prompt-generator-v5.1.10';
+const STOCK_CONTROLS = './stock-buttons.js?v=520';
+const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -17,8 +18,43 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+async function pageWithStockControls(request) {
+  let response = await caches.match(request) || await caches.match('./index.html');
+
+  try {
+    const fresh = await fetch(request);
+    if (fresh?.ok) {
+      response = fresh;
+      const cache = await caches.open(CACHE);
+      cache.put(request, fresh.clone());
+    }
+  } catch {
+    // Use the cached page while offline.
+  }
+
+  if (!response) return Response.error();
+  let html = await response.text();
+  html = html.replace(/v5\.1\.\d+/g, 'v5.1.10');
+  if (!html.includes('stock-buttons.js')) {
+    html = html.replace('</body>', `<script src="${STOCK_CONTROLS}"></script>\n</body>`);
+  }
+  const headers = new Headers(response.headers);
+  headers.set('content-type', 'text/html; charset=utf-8');
+  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  const isPage = event.request.mode === 'navigate'
+    || (url.origin === self.location.origin && (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')));
+
+  if (isPage) {
+    event.respondWith(pageWithStockControls(event.request));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
       const copy = response.clone();
