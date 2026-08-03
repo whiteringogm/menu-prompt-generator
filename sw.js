@@ -1,7 +1,7 @@
-const CACHE = 'menu-prompt-generator-v5.1.13';
+const CACHE = 'menu-prompt-generator-v5.1.13-r2';
 const STOCK_CONTROLS = './stock-buttons.js?v=521';
 const STOCK_UI = './stock-ui.js?v=512';
-const PLAN_ORDER = './plan-order.js?v=513';
+const PLAN_ORDER = './plan-order.js?v=514';
 const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
