@@ -131,6 +131,19 @@
     return button;
   }
 
+  function updateOrderControls(controls, id, index, length) {
+    const up = controls.querySelector('[data-plan-order-direction="-1"]');
+    const down = controls.querySelector('[data-plan-order-direction="1"]');
+    if (up) {
+      up.dataset.planOrderId = id;
+      up.disabled = index === 0;
+    }
+    if (down) {
+      down.dataset.planOrderId = id;
+      down.disabled = index === length - 1;
+    }
+  }
+
   function decorateCandidates() {
     setVersion();
     const group = candidateGroup();
@@ -147,23 +160,29 @@
 
     const rows = candidateRows();
     rows.forEach((row, index) => {
-      const existing = row.querySelector('[data-plan-order-controls]');
-      existing?.remove();
-      if (row.querySelector('[data-plan-save]')) return;
+      let controls = row.querySelector('[data-plan-order-controls]');
+      if (row.querySelector('[data-plan-save]')) {
+        controls?.remove();
+        return;
+      }
 
       const select = row.querySelector('[data-plan-tag]');
       const actions = row.querySelector('.item-actions');
       const id = select?.dataset.planTag;
       if (!id || !actions) return;
 
-      const controls = document.createElement('span');
-      controls.dataset.planOrderControls = '1';
-      controls.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:6px';
-      controls.append(
-        orderButton(id, -1, index === 0),
-        orderButton(id, 1, index === rows.length - 1),
-      );
-      actions.prepend(controls);
+      if (!controls) {
+        controls = document.createElement('span');
+        controls.dataset.planOrderControls = '1';
+        controls.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:6px';
+        controls.append(
+          orderButton(id, -1, index === 0),
+          orderButton(id, 1, index === rows.length - 1),
+        );
+        actions.prepend(controls);
+      } else {
+        updateOrderControls(controls, id, index, rows.length);
+      }
     });
   }
 
