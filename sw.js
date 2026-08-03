@@ -1,7 +1,8 @@
-const CACHE = 'menu-prompt-generator-v5.1.12';
+const CACHE = 'menu-prompt-generator-v5.1.13';
 const STOCK_CONTROLS = './stock-buttons.js?v=521';
 const STOCK_UI = './stock-ui.js?v=512';
-const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
+const PLAN_ORDER = './plan-order.js?v=513';
+const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -35,12 +36,19 @@ async function pageWithStockControls(request) {
 
   if (!response) return Response.error();
   let html = await response.text();
-  html = html.replace(/v5\.1\.\d+/g, 'v5.1.12');
-  if (!html.includes('stock-buttons.js')) {
-    html = html.replace('</body>', `<script src="${STOCK_CONTROLS}"></script>\n<script src="${STOCK_UI}"></script>\n</body>`);
-  } else if (!html.includes('stock-ui.js')) {
-    html = html.replace('</body>', `<script src="${STOCK_UI}"></script>\n</body>`);
-  }
+  html = html.replace(/v5\.1\.\d+/g, 'v5.1.13');
+
+  const scripts = [
+    ['stock-buttons.js', STOCK_CONTROLS],
+    ['stock-ui.js', STOCK_UI],
+    ['plan-order.js', PLAN_ORDER],
+  ];
+  const missingScripts = scripts
+    .filter(([name]) => !html.includes(name))
+    .map(([, source]) => `<script src="${source}"></script>`)
+    .join('\n');
+  if (missingScripts) html = html.replace('</body>', `${missingScripts}\n</body>`);
+
   const headers = new Headers(response.headers);
   headers.set('content-type', 'text/html; charset=utf-8');
   return new Response(html, { status: response.status, statusText: response.statusText, headers });
