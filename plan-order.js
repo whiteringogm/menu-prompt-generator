@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = 'v5.1.13';
+  const APP_VERSION = 'v5.1.14';
   const PLANS_KEY = 'menuPromptGenerator.v5.planItems';
   const TARGET_TAG = '今週の候補';
   const originalParse = JSON.parse.bind(JSON);
