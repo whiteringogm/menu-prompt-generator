@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = 'v5.1.14';
+  const APP_VERSION = 'v5.1.15';
   const PLANS_KEY = 'menuPromptGenerator.v5.planItems';
   const TARGET_TAG = '今週の候補';
   const originalParse = JSON.parse.bind(JSON);
@@ -43,6 +43,38 @@
     document.title = document.title.replace(/v5\.1\.\d+/, APP_VERSION);
     const heading = document.querySelector('h1');
     if (heading) heading.textContent = heading.textContent.replace(/v5\.1\.\d+/, APP_VERSION);
+  }
+
+  function installCompactStyles() {
+    if (document.getElementById('plan-order-compact-style')) return;
+    const style = document.createElement('style');
+    style.id = 'plan-order-compact-style';
+    style.textContent = `
+      @media (max-width: 520px) {
+        .item-actions[data-plan-order-actions] {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1.65fr 1.15fr .7fr;
+          gap: 3px;
+          align-items: stretch;
+        }
+
+        .item-actions[data-plan-order-actions] [data-plan-order-controls] {
+          display: contents !important;
+        }
+
+        .item-actions[data-plan-order-actions] button {
+          min-width: 0;
+          width: 100%;
+          min-height: 34px;
+          padding: 5px 3px;
+          font-size: clamp(9px, 2.9vw, 11px);
+          line-height: 1.15;
+          white-space: nowrap;
+          overflow-wrap: normal;
+        }
+      }
+    `;
+    document.head.append(style);
   }
 
   function loadPlans() {
@@ -170,11 +202,12 @@
       const actions = row.querySelector('.item-actions');
       const id = select?.dataset.planTag;
       if (!id || !actions) return;
+      actions.dataset.planOrderActions = '1';
 
       if (!controls) {
         controls = document.createElement('span');
         controls.dataset.planOrderControls = '1';
-        controls.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:6px';
+        controls.style.cssText = 'display:contents';
         controls.append(
           orderButton(id, -1, index === 0),
           orderButton(id, 1, index === rows.length - 1),
@@ -200,6 +233,7 @@
   }
 
   function init() {
+    installCompactStyles();
     decorateCandidates();
     refreshOutput();
 

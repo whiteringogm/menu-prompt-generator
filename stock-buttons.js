@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = 'v5.1.11';
+  const APP_VERSION = 'v5.1.15';
   const MEAL_STOCK_KEY = 'menuPromptGenerator.v5.mealStock';
   const OPTIONS = ['', '0', '1', '2', '3', '4'];
   const ITEM_SERVINGS = ['', '1', '2', '3', '4'];
@@ -239,11 +239,14 @@
   }
 
   function itemRow(type, item = { name: '', servings: '' }) {
+    const placeholder = type === 'soup'
+      ? '例：豆腐とわかめの味噌汁'
+      : '例：ブロッコリーのおかか和え';
     const row = document.createElement('div');
     row.dataset.stockItemRow = type;
     row.style.cssText = 'display:grid;grid-template-columns:minmax(0,1fr) 92px auto;gap:7px;align-items:end;margin-top:7px';
     row.innerHTML = `
-      <label>料理名<input type="text" data-stock-item-name maxlength="120" placeholder="例：ブロッコリーのおかか和え"></label>
+      <label>料理名<input type="text" data-stock-item-name maxlength="120" placeholder="${placeholder}"></label>
       <label>人前<select data-stock-item-servings>${ITEM_SERVINGS.map((value) => `<option value="${value}">${value || '未入力'}</option>`).join('')}</select></label>
       <button type="button" class="small danger" data-stock-remove="${type}" aria-label="この内訳を削除">削除</button>`;
     row.querySelector('[data-stock-item-name]').value = item.name || '';
