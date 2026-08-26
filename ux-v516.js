@@ -148,6 +148,8 @@
 
       if (expiryIds.has(id)) {
         select.value = EXPIRY_TAG;
+        row.querySelector('[data-plan-order-controls]')?.remove();
+        row.querySelector('.item-actions')?.removeAttribute('data-plan-order-actions');
         if (expiryBody && row.parentElement !== expiryBody) expiryBody.append(row);
       } else if (select.value === EXPIRY_TAG) {
         select.value = WEEKLY_TAG;
