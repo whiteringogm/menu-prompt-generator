@@ -1,4 +1,4 @@
-const CACHE = 'menu-prompt-generator-v5.1.16-r2';
+const CACHE = 'menu-prompt-generator-v5.1.16-r3';
 const STOCK_CONTROLS = './stock-buttons.js?v=522';
 const STOCK_UI = './stock-ui.js?v=515';
 const PLAN_ORDER = './plan-order.js?v=516';
