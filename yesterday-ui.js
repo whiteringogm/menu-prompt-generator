@@ -132,13 +132,21 @@
     const root = $('historyList');
     if (!root) return;
 
-    root.querySelectorAll('[data-extra-history-entry]').forEach((node) => node.remove());
+    const existing = root.querySelector('[data-extra-history-entry]');
     const history = readHistory();
     const keys = Object.keys(history).sort().reverse();
-    if (keys.length < HISTORY_DISPLAY_LIMIT) return;
+    if (keys.length < HISTORY_DISPLAY_LIMIT) {
+      existing?.remove();
+      return;
+    }
 
     const key = keys[HISTORY_DISPLAY_LIMIT - 1];
-    if (!key || root.querySelector(`[data-history-view="${key}"]`)) return;
+    if (!key || root.querySelector(`[data-history-view="${key}"]`)) {
+      existing?.remove();
+      return;
+    }
+    if (existing?.dataset.extraHistoryEntry === key) return;
+    existing?.remove();
 
     const entry = document.createElement('div');
     entry.className = 'history-entry';
