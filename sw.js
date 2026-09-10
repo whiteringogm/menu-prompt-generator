@@ -1,6 +1,6 @@
-const CACHE = 'menu-prompt-generator-v5.1.16-r3';
+const CACHE = 'menu-prompt-generator-v5.1.16-r4';
 const STOCK_CONTROLS = './stock-buttons.js?v=522';
-const STOCK_UI = './stock-ui.js?v=515';
+const STOCK_UI = './stock-ui.js?v=516';
 const PLAN_ORDER = './plan-order.js?v=516';
 const UX_V516 = './ux-v516.js?v=516';
 const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, UX_V516, './app.js?v=510', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
