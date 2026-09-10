@@ -1,9 +1,11 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = 'v5.1.15';
+  const APP_VERSION = 'v5.1.16';
+  const HISTORY_KEY = 'menuPromptGenerator.v5.history';
   const TYPES = ['side', 'soup'];
   const ITEM_SERVINGS = ['', '1', '2', '3', '4'];
+  const pad = (value) => String(value).padStart(2, '0');
 
   function blankItemRow(type) {
     const placeholder = type === 'soup'
@@ -17,6 +19,137 @@
       <label>人前<select data-stock-item-servings>${ITEM_SERVINGS.map((value) => `<option value="${value}">${value || '未入力'}</option>`).join('')}</select></label>
       <button type="button" class="small danger" data-stock-remove="${type}" aria-label="この内訳を削除">削除</button>`;
     return row;
+  }
+
+  function addDays(key, amount) {
+    const [year, month, day] = String(key || '').split('-').map(Number);
+    if (![year, month, day].every(Number.isFinite)) return '';
+    const date = new Date(year, month - 1, day);
+    date.setDate(date.getDate() + amount);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
+  function currentDateKey() {
+    const input = document.getElementById('dateInput');
+    if (input?.value) return input.value;
+    const now = new Date();
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }
+
+  function readHistory() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      console.warn('history read failed', error);
+      return {};
+    }
+  }
+
+  function yesterdayDinnerText() {
+    const key = addDays(currentDateKey(), -1);
+    const record = readHistory()[key];
+    const dinner = record?.meals?.dinner;
+    if (typeof dinner === 'string' && dinner.trim()) return dinner.trim();
+
+    const raw = typeof record?.rawText === 'string' ? record.rawText : '';
+    const match = raw.match(/^夕\s*[：:]\s*(.+)$/m);
+    return match?.[1]?.trim() || '';
+  }
+
+  function isEmptyMealName(value) {
+    return /^(?:なし|無し|未定|なし\s*[（(]未[）)]|未定\s*[（(]未[）)])$/.test(String(value || '').trim());
+  }
+
+  function parseYesterdayDinner(value) {
+    const parts = String(value || '')
+      .split('、')
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+    if (parts.length < 3) {
+      return {
+        ok: false,
+        message: '昨日の夕食を「主菜、副菜、汁物」の順で「、」区切りにすると読み取れるよ',
+      };
+    }
+
+    return {
+      ok: true,
+      sideNames: parts.slice(1, -1).filter((name) => !isEmptyMealName(name)),
+      soupNames: isEmptyMealName(parts.at(-1)) ? [] : [parts.at(-1)],
+    };
+  }
+
+  function setImportStatus(message, state = '') {
+    const node = document.querySelector('[data-yesterday-dinner-stock-status]');
+    if (!node) return;
+    node.textContent = message;
+    node.dataset.state = state;
+  }
+
+  function setStockNames(type, names) {
+    const rowsRoot = document.querySelector(`[data-stock-rows="${type}"]`);
+    if (!rowsRoot) return;
+
+    const desiredNames = names.length ? names : [''];
+    while (rowsRoot.querySelectorAll('[data-stock-item-row]').length < desiredNames.length) {
+      rowsRoot.append(blankItemRow(type));
+    }
+    while (rowsRoot.querySelectorAll('[data-stock-item-row]').length > desiredNames.length) {
+      rowsRoot.lastElementChild?.remove();
+    }
+
+    const remainingId = type === 'side' ? 'sideRemaining' : 'soupRemaining';
+    const remaining = document.getElementById(remainingId);
+    if (remaining) remaining.value = '';
+
+    [...rowsRoot.querySelectorAll('[data-stock-item-row]')].forEach((row, index) => {
+      const name = row.querySelector('[data-stock-item-name]');
+      const servings = row.querySelector('[data-stock-item-servings]');
+      if (name) name.value = desiredNames[index] || '';
+      if (servings) servings.value = '';
+    });
+
+    const firstName = rowsRoot.querySelector('[data-stock-item-name]');
+    firstName?.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  function importYesterdayDinner() {
+    const dinner = yesterdayDinnerText();
+    if (!dinner) {
+      setImportStatus('昨日の夕食が保存されてないみたい', 'error');
+      return;
+    }
+
+    const parsed = parseYesterdayDinner(dinner);
+    if (!parsed.ok) {
+      setImportStatus(parsed.message, 'error');
+      return;
+    }
+
+    setStockNames('side', parsed.sideNames);
+    setStockNames('soup', parsed.soupNames);
+    updateUI();
+
+    const sideCount = parsed.sideNames.length;
+    const soupCount = parsed.soupNames.length;
+    setImportStatus(`昨日の夕食から副菜${sideCount}品・汁物${soupCount}品をコピーしたよ。残り人前だけ入れてね`, 'saved');
+  }
+
+  function ensureYesterdayDinnerImport() {
+    const section = document.getElementById('mealStockSection');
+    if (!section || section.querySelector('[data-yesterday-dinner-stock-import]')) return;
+
+    const help = section.querySelector(':scope > .help');
+    const row = document.createElement('div');
+    row.className = 'buttons';
+    row.style.marginBottom = '10px';
+    row.innerHTML = `
+      <button type="button" class="small" data-yesterday-dinner-stock-import>昨日の夕食から料理名を入れる</button>
+      <span class="mini" data-yesterday-dinner-stock-status>書式：主菜、副菜、汁物（料理名の中は「・」推奨）</span>`;
+    if (help) help.after(row);
+    else section.prepend(row);
   }
 
   function totalText(type) {
@@ -100,6 +233,7 @@
     const helpText = '料理名 → 人前 → 合計の順で入力。1品でも料理名を入れ、2品以上あるときだけ追加する。内訳を入れない日は合計だけ手動入力もできる。';
     if (help && help.textContent !== helpText) help.textContent = helpText;
 
+    ensureYesterdayDinnerImport();
     TYPES.forEach(updateType);
 
     document.title = document.title.replace(/v5\.1\.\d+/, APP_VERSION);
@@ -113,6 +247,13 @@
     section.dataset.primaryStockGuard = '1';
 
     section.addEventListener('click', (event) => {
+      const importButton = event.target.closest('[data-yesterday-dinner-stock-import]');
+      if (importButton) {
+        event.preventDefault();
+        importYesterdayDinner();
+        return;
+      }
+
       const add = event.target.closest('[data-stock-add]');
       if (add) {
         const type = add.dataset.stockAdd;
