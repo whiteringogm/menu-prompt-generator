@@ -66,8 +66,9 @@
     style.id = 'ux-v517-style';
     style.textContent = [
       '@media(min-width:900px){.layout{display:block!important;max-width:860px;margin:0 auto}.secondary{display:none!important}.primary-column{width:100%}}',
-      '.usual-register-current{margin:10px 0 14px;padding:10px;border:1px dashed var(--line);border-radius:12px;background:#fffdf9}',
-      '.usual-register-current .buttons{margin-top:6px}',
+      '.meal-input-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}',
+      '.meal-input-heading label{margin:0}',
+      '.meal-input-heading [data-register-usual]{flex:0 0 auto;min-height:32px;padding:4px 9px;font-size:12px}',
       '.history-edit-panel{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}',
       '.history-edit-grid{display:grid;gap:7px}',
       '.history-more-controls{margin:8px 0 2px}',
@@ -133,30 +134,27 @@
   }
 
   function moveUsualRegisterButtons() {
-    const details = findDetails('いつものメニュー編集');
-    const editor = $('usualEditor');
-    if (!details || !editor) return;
-    let box = details.querySelector('[data-usual-register-current]');
-    if (!box) {
-      box = document.createElement('div');
-      box.className = 'usual-register-current';
-      box.dataset.usualRegisterCurrent = '1';
-      const note = document.createElement('div');
-      note.className = 'mini';
-      note.textContent = '今日の入力内容を「いつもの」に登録';
-      const buttons = document.createElement('div');
-      buttons.className = 'buttons';
-      buttons.dataset.usualRegisterButtons = '1';
-      box.append(note, buttons);
-      editor.before(box);
-    }
-    const target = box.querySelector('[data-usual-register-buttons]');
     document.querySelectorAll('[data-register-usual]').forEach((button) => {
       const key = button.dataset.registerUsual;
-      const label = MEALS.find((entry) => entry[0] === key)?.[1] || key;
-      button.textContent = label + 'を登録';
+      const field = $(key + 'Text');
+      const inputWrap = field?.parentElement;
+      const label = inputWrap?.querySelector('label[for="' + key + 'Text"]');
+      if (!inputWrap || !label) return;
+
+      let heading = inputWrap.querySelector(':scope > .meal-input-heading');
+      if (!heading) {
+        heading = document.createElement('div');
+        heading.className = 'meal-input-heading';
+        label.before(heading);
+        heading.append(label);
+      }
+
+      button.textContent = 'いつものに登録';
       button.classList.add('soft');
-      target.append(button);
+      heading.append(button);
+
+      const oldRow = button.closest('.meal-card')?.querySelector('.buttons');
+      if (oldRow && !oldRow.children.length) oldRow.remove();
     });
   }
 
