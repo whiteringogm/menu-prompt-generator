@@ -466,7 +466,9 @@
   function addPlan(name, tag) {
     const cleanName = String(name || '').trim();
     if (!cleanName) return showToast('品名を入力して');
-    draft.items.push({ id: uid(), name: cleanName, tag, skipToday: false });
+    const entry = { id: uid(), name: cleanName, tag, skipToday: false };
+    if (tag === '今週の候補') draft.items.unshift(entry);
+    else draft.items.push(entry);
     saveDraftNow();
     renderPlans();
     generateText();
