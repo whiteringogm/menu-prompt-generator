@@ -186,37 +186,11 @@
       const note = document.createElement('p');
       note.className = 'mini';
       note.dataset.planOrderNote = '1';
-      note.textContent = '上にあるものほど先に使いたい順。今日使う義務ではなく、自然に合う候補が複数あるときの判断材料。';
+      note.textContent = '上にあるものほど先に使いたい順。≡を長押しして好きな位置へ移動できる。';
       heading.after(note);
     }
 
-    const rows = candidateRows();
-    rows.forEach((row, index) => {
-      let controls = row.querySelector('[data-plan-order-controls]');
-      if (row.querySelector('[data-plan-save]')) {
-        controls?.remove();
-        return;
-      }
-
-      const select = row.querySelector('[data-plan-tag]');
-      const actions = row.querySelector('.item-actions');
-      const id = select?.dataset.planTag;
-      if (!id || !actions) return;
-      actions.dataset.planOrderActions = '1';
-
-      if (!controls) {
-        controls = document.createElement('span');
-        controls.dataset.planOrderControls = '1';
-        controls.style.cssText = 'display:contents';
-        controls.append(
-          orderButton(id, -1, index === 0),
-          orderButton(id, 1, index === rows.length - 1),
-        );
-        actions.prepend(controls);
-      } else {
-        updateOrderControls(controls, id, index, rows.length);
-      }
-    });
+    group.querySelectorAll('[data-plan-order-controls]').forEach((controls) => controls.remove());
   }
 
   function scheduleDecorate() {
@@ -242,14 +216,6 @@
       const observer = new MutationObserver(scheduleDecorate);
       observer.observe(root, { childList: true, subtree: true });
     }
-
-    document.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-plan-order-id]');
-      if (!button || button.disabled) return;
-      event.preventDefault();
-      event.stopPropagation();
-      moveCandidate(button.dataset.planOrderId, Number(button.dataset.planOrderDirection));
-    }, true);
 
     ['prevDay', 'nextDay', 'todayBtn', 'generateText'].forEach((id) => {
       document.getElementById(id)?.addEventListener('click', () => setTimeout(() => {
