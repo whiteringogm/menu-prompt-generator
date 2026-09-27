@@ -61,16 +61,54 @@
     return /^(?:なし|無し|未定|なし\s*[（(]未[）)]|未定\s*[（(]未[）)])$/.test(String(value || '').trim());
   }
 
+  function looksLikeSoup(value) {
+    const name = String(value || '').trim();
+    if (!name || isEmptyMealName(name)) return false;
+    return /(?:味噌汁|みそ汁|スープ|ポタージュ|豚汁|けんちん汁|すまし汁|お?吸い物|おすまし|コンソメ)$/.test(name)
+      || /(?:味噌汁|みそ汁|スープ|ポタージュ|豚汁|けんちん汁|すまし汁|お?吸い物|おすまし)/.test(name);
+  }
+
   function parseYesterdayDinner(value) {
     const parts = String(value || '')
       .split('、')
       .map((part) => part.trim())
       .filter(Boolean);
 
-    if (parts.length < 3) {
+    if (!parts.length) {
       return {
         ok: false,
-        message: '昨日の夕食を「主菜、副菜、汁物」の順で「、」区切りにすると読み取れるよ',
+        message: '昨日の夕食が空欄みたい',
+      };
+    }
+
+    if (parts.length === 1) {
+      return {
+        ok: true,
+        sideNames: [],
+        soupNames: [],
+      };
+    }
+
+    if (parts.length === 2) {
+      const second = parts[1];
+      if (isEmptyMealName(second)) {
+        return {
+          ok: true,
+          sideNames: [],
+          soupNames: [],
+        };
+      }
+      if (looksLikeSoup(second)) {
+        return {
+          ok: true,
+          sideNames: [],
+          soupNames: [second],
+        };
+      }
+      return {
+        ok: true,
+        sideNames: [second],
+        soupNames: [],
       };
     }
 
@@ -147,7 +185,7 @@
     row.style.marginBottom = '10px';
     row.innerHTML = `
       <button type="button" class="small" data-yesterday-dinner-stock-import>昨日の夕食から料理名を入れる</button>
-      <span class="mini" data-yesterday-dinner-stock-status>書式：主菜、副菜、汁物（料理名の中は「・」推奨）</span>`;
+      <span class="mini" data-yesterday-dinner-stock-status>基本書式：主菜、副菜、汁物。2品構成なら2品目を副菜／汁物へ自動判定</span>`;
     if (help) help.after(row);
     else section.prepend(row);
   }
