@@ -322,7 +322,7 @@
       }
     });
     const note = candidateGroup()?.querySelector('[data-plan-order-note]');
-    if (note) note.textContent = '上にあるものほど先に使いたい順。≡を長押しして好きな位置へ移動できる。';
+    if (note && note.textContent !== '上にあるものほど先に使いたい順。≡を長押しして好きな位置へ移動できる。') note.textContent = '上にあるものほど先に使いたい順。≡を長押しして好きな位置へ移動できる。';
   }
 
   function queueCandidateDecorate() {
