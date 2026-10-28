@@ -105,8 +105,9 @@
     const expiryIds = readIds(EXPIRY_IDS_KEY);
     const eligible = new Set([...expiryIds].filter((id) => allIds.has(id)));
     const existingOrder = orderedIds.filter((id) => eligible.has(id));
-    eligible.forEach((id) => {
-      if (!existingOrder.includes(id)) existingOrder.push(id);
+    plans().forEach((item) => {
+      const id = String(item?.id || '');
+      if (eligible.has(id) && !existingOrder.includes(id)) existingOrder.push(id);
     });
     const newFrozen = new Set([...frozenIds].filter((id) => allIds.has(id)));
     if (existingOrder.join('\u0000') !== orderedIds.join('\u0000')) {
@@ -332,7 +333,7 @@
       Number(frozenIds.has(String(a.id))) - Number(frozenIds.has(String(b.id)))
     );
     const label = (items) => items.length
-      ? items.map((item) => String(item.name) + (frozenIds.has(String(item.id)) ? '（冷凍）' : '')).join('、')
+      ? items.map((item) => String(item.name) + (frozenIds.has(String(item.id)) && !String(item.name).includes('冷凍') ? '（冷凍）' : '')).join('、')
       : 'なし';
     return value
       .replace(/(【期限注意】\n)[^\n]*/, (_, prefix) => prefix + label(priority))
