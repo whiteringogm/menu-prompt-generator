@@ -7,6 +7,7 @@
   const EXPIRY_IDS_KEY = 'menuPromptGenerator.v5.expiryPlanIds';
   const FROZEN_KEY = 'menuPromptGenerator.v5.expiryFrozenIds';
   const ORDER_KEY = 'menuPromptGenerator.v5.expiryOrderIds';
+  const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
   let frozenIds = readIds(FROZEN_KEY);
   let orderedIds = readList(ORDER_KEY);
   let frame = null;
@@ -292,16 +293,19 @@
   }
 
   function patchOutput() {
-    const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
-    if (!valueDescriptor?.get || !valueDescriptor?.set) return;
+    const previous = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+    if (!previous?.get || !previous?.set || !nativeValue?.set || !nativeValue?.get) return;
     Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
-      configurable: valueDescriptor.configurable,
-      enumerable: valueDescriptor.enumerable,
-      get: valueDescriptor.get,
+      configurable: previous.configurable,
+      enumerable: previous.enumerable,
+      get: previous.get,
       set(value) {
-        return valueDescriptor.set.call(this,
-          this.id === 'outputText' ? decorateOutput(value) : value
-        );
+        const result = previous.set.call(this, value);
+        if (this.id === 'outputText') {
+          const next = decorateOutput(nativeValue.get.call(this));
+          nativeValue.set.call(this, next);
+        }
+        return result;
       },
     });
   }
