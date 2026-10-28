@@ -1,10 +1,11 @@
-const CACHE = 'menu-prompt-generator-v5.1.17-r5';
+const CACHE = 'menu-prompt-generator-v5.1.18-r1';
 const STOCK_CONTROLS = './stock-buttons.js?v=522';
 const STOCK_UI = './stock-ui.js?v=517';
 const PLAN_ORDER = './plan-order.js?v=517';
 const UX_V516 = './ux-v516.js?v=516';
 const UX_V517 = './ux-v517.js?v=517';
-const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, UX_V516, UX_V517, './app.js?v=511', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
+const UX_V518 = './ux-v518.js?v=518';
+const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, UX_V516, UX_V517, UX_V518, './app.js?v=511', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -38,7 +39,7 @@ async function pageWithStockControls(request) {
 
   if (!response) return Response.error();
   let html = await response.text();
-  html = html.replace(/v5\.1\.\d+/g, 'v5.1.17');
+  html = html.replace(/v5\.1\.\d+/g, 'v5.1.18');
 
   const scripts = [
     ['stock-buttons.js', STOCK_CONTROLS],
@@ -46,6 +47,7 @@ async function pageWithStockControls(request) {
     ['plan-order.js', PLAN_ORDER],
     ['ux-v516.js', UX_V516],
     ['ux-v517.js', UX_V517],
+    ['ux-v518.js', UX_V518],
   ];
   const missingScripts = scripts
     .filter(([name]) => !html.includes(name))
