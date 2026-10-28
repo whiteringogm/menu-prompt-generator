@@ -60,10 +60,10 @@
       frozen.append(snowflake);
     }
 
-    edit.textContent = '✏️';
+    if (edit.textContent !== '✏️') edit.textContent = '✏️';
     edit.title = '名前編集';
     edit.setAttribute('aria-label', '名前編集');
-    del.textContent = '🗑️';
+    if (del.textContent !== '🗑️') del.textContent = '🗑️';
     del.title = '削除';
     del.setAttribute('aria-label', '削除');
     handle.title = '長押しして並べ替え';
