@@ -379,13 +379,18 @@
       reader.onload = () => {
         try {
           const backup = JSON.parse(reader.result);
-          const importedFrozen = Array.isArray(backup?.expiryFrozenIds) ? backup.expiryFrozenIds.map(String) : [];
-          const importedOrder = Array.isArray(backup?.expiryOrderIds) ? backup.expiryOrderIds.map(String) : [];
-          frozenIds = new Set(importedFrozen);
-          orderedIds = [...new Set(importedOrder)];
-          saveList(FROZEN_KEY, frozenIds);
-          saveList(ORDER_KEY, orderedIds);
-          queueDecorate();
+          let changed = false;
+          if (Array.isArray(backup?.planFrozenIds)) {
+            frozenIds = new Set(backup.planFrozenIds.map(String));
+            saveList(FROZEN_KEY, frozenIds);
+            changed = true;
+          }
+          if (Array.isArray(backup?.expiryOrderIds)) {
+            orderedIds = [...new Set(backup.expiryOrderIds.map(String))];
+            saveList(ORDER_KEY, orderedIds);
+            changed = true;
+          }
+          if (changed) queueDecorate();
         } catch (error) {
           console.warn('expiry order backup import failed', error);
         }
