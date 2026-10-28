@@ -3,9 +3,10 @@
 
   const VERSION = 'v5.1.18';
   const EXPIRY_TAG = '期限注意';
+  const WEEKLY_TAG = '今週の候補';
   const PLANS_KEY = 'menuPromptGenerator.v5.planItems';
   const EXPIRY_IDS_KEY = 'menuPromptGenerator.v5.expiryPlanIds';
-  const FROZEN_KEY = 'menuPromptGenerator.v5.expiryFrozenIds';
+  const FROZEN_KEY = 'menuPromptGenerator.v5.planFrozenIds';
   const ORDER_KEY = 'menuPromptGenerator.v5.expiryOrderIds';
   const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
   let frozenIds = readIds(FROZEN_KEY);
@@ -55,6 +56,20 @@
   function expiryRows() {
     const group = expiryGroup();
     const body = group?.querySelector(':scope > div');
+    if (!body) return [];
+    return [...body.children].filter((row) =>
+      row.classList?.contains('item') && row.querySelector('[data-plan-tag]')
+    );
+  }
+
+  function weeklyGroup() {
+    return [...document.querySelectorAll('#planGroups > .plan-group')].find((group) =>
+      group.querySelector(':scope > h3')?.textContent.trim().startsWith(WEEKLY_TAG)
+    ) || null;
+  }
+
+  function weeklyRows() {
+    const body = weeklyGroup()?.querySelector(':scope > div');
     if (!body) return [];
     return [...body.children].filter((row) =>
       row.classList?.contains('item') && row.querySelector('[data-plan-tag]')
@@ -119,7 +134,7 @@
     const style = document.createElement('style');
     style.id = 'expiry-order-styles';
     style.textContent = [
-      '.expiry-frozen-label{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px;padding:4px 6px;white-space:nowrap;border:1px solid var(--line);border-radius:9px;background:#fff}',
+      '.plan-input [data-plan-frozen-new]{grid-column:1/-1;justify-content:flex-start;width:max-content}.expiry-frozen-label{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12px;padding:4px 6px;white-space:nowrap;border:1px solid var(--line);border-radius:9px;background:#fff}',
       '.expiry-frozen-label input{display:inline-block;width:18px;height:18px;min-width:18px;margin:0;accent-color:var(--accent)}',
       '.expiry-drag-handle{cursor:grab;touch-action:none;user-select:none;font-size:18px;line-height:1;min-width:42px}',
       '.expiry-drag-handle:active{cursor:grabbing}',
@@ -130,38 +145,39 @@
     document.head.append(style);
   }
 
-  function decorateRow(row) {
+  function decorateRow(row, isExpiry) {
     const id = rowId(row);
     if (!id) return;
     const actions = row.querySelector('.item-actions');
     if (!actions) return;
-    actions.dataset.expiryActions = '1';
-
-    let handle = actions.querySelector('[data-expiry-drag]');
-    if (!handle) {
-      handle = document.createElement('button');
-      handle.type = 'button';
-      handle.className = 'small expiry-drag-handle';
-      handle.textContent = '≡';
-      handle.title = '長押しで並び替え／キーボードの↑↓でも移動';
-      handle.setAttribute('aria-label', '期限注意の同じ保存状態内で並び替え');
-      handle.dataset.expiryDrag = id;
-      actions.prepend(handle);
+    if (isExpiry) {
+      actions.dataset.expiryActions = '1';
+      let handle = actions.querySelector('[data-expiry-drag]');
+      if (!handle) {
+        handle = document.createElement('button');
+        handle.type = 'button';
+        handle.className = 'small expiry-drag-handle';
+        handle.textContent = '≡';
+        handle.title = '長押しで並び替え／キーボードの↑↓でも移動';
+        handle.setAttribute('aria-label', '期限注意の同じ保存状態内で並び替え');
+        handle.dataset.expiryDrag = id;
+        actions.prepend(handle);
+      }
     }
 
-    let label = actions.querySelector('[data-expiry-frozen-label]');
+    let label = actions.querySelector('[data-plan-frozen-label]');
     if (!label) {
       label = document.createElement('label');
       label.className = 'expiry-frozen-label';
-      label.dataset.expiryFrozenLabel = '1';
+      label.dataset.planFrozenLabel = '1';
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.dataset.expiryFrozen = id;
+      input.dataset.planFrozen = id;
       label.append(input, document.createTextNode('冷凍'));
-      handle.after(label);
+      actions.prepend(label);
     }
-    const checkbox = label.querySelector('[data-expiry-frozen]');
-    checkbox.dataset.expiryFrozen = id;
+    const checkbox = label.querySelector('[data-plan-frozen]');
+    checkbox.dataset.planFrozen = id;
     checkbox.checked = frozenIds.has(id);
   }
 
@@ -180,14 +196,38 @@
       note.textContent = '≡を長押しして並び替え。冷凍にチェックすると冷蔵品より下へ移動（冷蔵・冷凍の中で順番を保存）。';
       group.querySelector(':scope > h3')?.after(note);
     }
+    const weekly = weeklyGroup();
+    if (weekly && !weekly.querySelector('[data-frozen-weekly-note]')) {
+      const note = document.createElement('p');
+      note.className = 'expiry-group-note';
+      note.dataset.frozenWeeklyNote = '1';
+      note.textContent = '冷凍にチェックしたものは、冷蔵品より下に表示されます。';
+      weekly.querySelector(':scope > h3')?.after(note);
+    }
 
     const rows = expiryRows();
-    rows.forEach(decorateRow);
+    rows.forEach((row) => decorateRow(row, true));
+    const candidates = weeklyRows();
+    candidates.forEach((row) => decorateRow(row, false));
     if (dragState?.active) return;
     const target = sortedRows(rows);
     target.forEach((row, index) => {
       if (body.children[index] !== row) body.insertBefore(row, body.children[index] || null);
     });
+
+    const weeklyBody = weeklyGroup()?.querySelector(':scope > div');
+    if (weeklyBody) {
+      const candidateRank = new Map(plans().map((item, index) => [String(item.id), index]));
+      const sorted = candidates.map((row, index) => ({ row, index })).sort((a, b) =>
+        Number(isFrozen(a.row)) - Number(isFrozen(b.row))
+        || (candidateRank.get(rowId(a.row)) ?? Number.MAX_SAFE_INTEGER)
+          - (candidateRank.get(rowId(b.row)) ?? Number.MAX_SAFE_INTEGER)
+        || a.index - b.index
+      ).map((entry) => entry.row);
+      sorted.forEach((row, index) => {
+        if (weeklyBody.children[index] !== row) weeklyBody.insertBefore(row, weeklyBody.children[index] || null);
+      });
+    }
   }
 
   function queueDecorate() {
@@ -278,18 +318,25 @@
         : []
     );
     const ranks = new Map(orderedIds.map((id, index) => [id, index]));
-    const active = plans().filter((item) =>
-      expiryIds.has(String(item?.id || '')) && !skipped.has(String(item?.name || '').trim())
-    );
-    active.sort((a, b) =>
+    const activeItems = plans().filter((item) => !skipped.has(String(item?.name || '').trim()));
+    const priority = activeItems.filter((item) => expiryIds.has(String(item?.id || '')));
+    priority.sort((a, b) =>
       Number(frozenIds.has(String(a.id))) - Number(frozenIds.has(String(b.id)))
       || (ranks.get(String(a.id)) ?? Number.MAX_SAFE_INTEGER)
         - (ranks.get(String(b.id)) ?? Number.MAX_SAFE_INTEGER)
     );
-    const line = active.length
-      ? active.map((item) => String(item.name) + (frozenIds.has(String(item.id)) ? '（冷凍）' : '')).join('、')
+    const candidates = activeItems.filter((item) =>
+      item.tag === WEEKLY_TAG && !expiryIds.has(String(item?.id || ''))
+    );
+    candidates.sort((a, b) =>
+      Number(frozenIds.has(String(a.id))) - Number(frozenIds.has(String(b.id)))
+    );
+    const label = (items) => items.length
+      ? items.map((item) => String(item.name) + (frozenIds.has(String(item.id)) ? '（冷凍）' : '')).join('、')
       : 'なし';
-    return value.replace(/(【期限注意】\n)[^\n]*/, (_, prefix) => prefix + line);
+    return value
+      .replace(/(【期限注意】\n)[^\n]*/, (_, prefix) => prefix + label(priority))
+      .replace(/(【今週の候補】\n)[^\n]*/, (_, prefix) => prefix + label(candidates));
   }
 
   function patchOutput() {
@@ -316,7 +363,7 @@
       if (value && typeof value === 'object' && value.version && value.drafts && value.history) {
         value = {
           ...value,
-          expiryFrozenIds: [...frozenIds],
+          planFrozenIds: [...frozenIds],
           expiryOrderIds: [...orderedIds],
         };
       }
@@ -348,9 +395,9 @@
 
   function installHandlers() {
     document.addEventListener('change', (event) => {
-      const checkbox = event.target.closest?.('[data-expiry-frozen]');
+      const checkbox = event.target.closest?.('[data-plan-frozen]');
       if (!checkbox) return;
-      const id = String(checkbox.dataset.expiryFrozen || '');
+      const id = String(checkbox.dataset.planFrozen || '');
       if (!id) return;
       if (checkbox.checked) frozenIds.add(id);
       else frozenIds.delete(id);
@@ -379,6 +426,32 @@
 
     const root = document.getElementById('planGroups');
     if (root) new MutationObserver(queueDecorate).observe(root, { childList: true, subtree: true });
+    const add = document.getElementById('addPlan');
+    if (add) {
+      const label = document.createElement('label');
+      label.className = 'expiry-frozen-label';
+      label.dataset.planFrozenNew = '1';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = 'newPlanFrozen';
+      label.append(input, document.createTextNode('冷凍として追加（未チェックは冷蔵）'));
+      add.after(label);
+      add.addEventListener('click', () => {
+        const before = new Set(plans().map((item) => String(item?.id || '')));
+        const frozen = input.checked;
+        setTimeout(() => {
+          const entry = plans().find((item) => !before.has(String(item?.id || '')));
+          if (!entry) return;
+          if (frozen) {
+            frozenIds.add(String(entry.id));
+            saveList(FROZEN_KEY, frozenIds);
+          }
+          input.checked = false;
+          queueDecorate();
+          refreshOutput();
+        }, 0);
+      });
+    }
     ['prevDay', 'nextDay', 'todayBtn', 'generateText'].forEach((id) => {
       document.getElementById(id)?.addEventListener('click', () => setTimeout(() => {
         queueDecorate();
