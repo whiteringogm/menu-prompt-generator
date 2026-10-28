@@ -216,7 +216,7 @@
     });
 
     const weeklyBody = weeklyGroup()?.querySelector(':scope > div');
-    if (weeklyBody) {
+    if (weeklyBody && !candidates.some((row) => row.classList.contains('candidate-dragging'))) {
       const candidateRank = new Map(plans().map((item, index) => [String(item.id), index]));
       const sorted = candidates.map((row, index) => ({ row, index })).sort((a, b) =>
         Number(isFrozen(a.row)) - Number(isFrozen(b.row))
