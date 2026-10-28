@@ -149,10 +149,13 @@
       if (expiryIds.has(id)) {
         select.value = EXPIRY_TAG;
         row.querySelector('[data-plan-order-controls]')?.remove();
+        row.querySelectorAll('[data-candidate-drag]').forEach((button) => button.remove());
         row.querySelector('.item-actions')?.removeAttribute('data-plan-order-actions');
         if (expiryBody && row.parentElement !== expiryBody) expiryBody.append(row);
       } else if (select.value === EXPIRY_TAG) {
         select.value = WEEKLY_TAG;
+        row.querySelectorAll('[data-expiry-drag]').forEach((button) => button.remove());
+        row.querySelector('.item-actions')?.removeAttribute('data-expiry-actions');
         if (weeklyBody && row.parentElement !== weeklyBody) weeklyBody.append(row);
       }
     });
