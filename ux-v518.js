@@ -7,7 +7,6 @@
   const EXPIRY_IDS_KEY = 'menuPromptGenerator.v5.expiryPlanIds';
   const FROZEN_KEY = 'menuPromptGenerator.v5.expiryFrozenIds';
   const ORDER_KEY = 'menuPromptGenerator.v5.expiryOrderIds';
-  const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
   let frozenIds = readIds(FROZEN_KEY);
   let orderedIds = readList(ORDER_KEY);
   let frame = null;
@@ -269,36 +268,31 @@
   }
 
   function decorateOutput(text) {
-    const items = plans();
-    const eligible = readIds(EXPIRY_IDS_KEY);
-    const known = new Map();
-    items.filter((item) => eligible.has(String(item?.id || ''))).forEach((item) => {
-      const name = String(item?.name || '');
-      if (!known.has(name)) known.set(name, []);
-      known.get(name).push(item);
-    });
+    const value = String(text || '');
+    const expiryIds = readIds(EXPIRY_IDS_KEY);
+    const skipSection = value.match(/【今日だけ使わないもの】\n([^\n]*)/);
+    const skipped = new Set(
+      skipSection && skipSection[1] !== 'なし'
+        ? skipSection[1].split('、').map((name) => name.trim())
+        : []
+    );
     const ranks = new Map(orderedIds.map((id, index) => [id, index]));
-    return String(text || '').replace(/(【期限注意】\n)([^\n]*)/, (all, prefix, list) => {
-      if (!list || list === 'なし') return all;
-      const tokens = list.split('、').map((value, index) => {
-        const name = value.trim().replace(/（冷凍）$/, '');
-        const item = known.get(name)?.shift();
-        return { name, item, index };
-      });
-      tokens.sort((a, b) => {
-        const aId = String(a.item?.id || '');
-        const bId = String(b.item?.id || '');
-        return Number(frozenIds.has(aId)) - Number(frozenIds.has(bId))
-          || (ranks.get(aId) ?? Number.MAX_SAFE_INTEGER) - (ranks.get(bId) ?? Number.MAX_SAFE_INTEGER)
-          || a.index - b.index;
-      });
-      return prefix + tokens.map((token) =>
-        token.name + (frozenIds.has(String(token.item?.id || '')) ? '（冷凍）' : '')
-      ).join('、');
-    });
+    const active = plans().filter((item) =>
+      expiryIds.has(String(item?.id || '')) && !skipped.has(String(item?.name || '').trim())
+    );
+    active.sort((a, b) =>
+      Number(frozenIds.has(String(a.id))) - Number(frozenIds.has(String(b.id)))
+      || (ranks.get(String(a.id)) ?? Number.MAX_SAFE_INTEGER)
+        - (ranks.get(String(b.id)) ?? Number.MAX_SAFE_INTEGER)
+    );
+    const line = active.length
+      ? active.map((item) => String(item.name) + (frozenIds.has(String(item.id)) ? '（冷凍）' : '')).join('、')
+      : 'なし';
+    return value.replace(/(【期限注意】\n)[^\n]*/, (_, prefix) => prefix + line);
   }
 
   function patchOutput() {
+    const valueDescriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
     if (!valueDescriptor?.get || !valueDescriptor?.set) return;
     Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
       configurable: valueDescriptor.configurable,
