@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 'v5.1.18';
+  const VERSION = 'v5.1.21';
   const EXPIRY_TAG = '期限注意';
   const WEEKLY_TAG = '今週の候補';
   const PLANS_KEY = 'menuPromptGenerator.v5.planItems';
@@ -442,7 +442,11 @@
       input.id = 'newPlanFrozen';
       label.append(input, document.createTextNode('冷凍として追加（未チェックは冷蔵）'));
       add.after(label);
+      // Capture before app.js's onclick creates the item. During the normal
+      // bubble phase the item already exists, so a snapshot taken then cannot
+      // identify the newly added ID.
       add.addEventListener('click', () => {
+        if (!document.getElementById('planName')?.value.trim()) return;
         const before = new Set(plans().map((item) => String(item?.id || '')));
         const frozen = input.checked;
         setTimeout(() => {
@@ -456,7 +460,7 @@
           queueDecorate();
           refreshOutput();
         }, 0);
-      });
+      }, true);
     }
     ['prevDay', 'nextDay', 'todayBtn', 'generateText'].forEach((id) => {
       document.getElementById(id)?.addEventListener('click', () => setTimeout(() => {
