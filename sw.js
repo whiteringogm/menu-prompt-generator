@@ -1,11 +1,11 @@
-const CACHE = 'menu-prompt-generator-v5.1.19-r1';
+const CACHE = 'menu-prompt-generator-v5.1.20-r1';
 const STOCK_CONTROLS = './stock-buttons.js?v=522';
 const STOCK_UI = './stock-ui.js?v=517';
 const PLAN_ORDER = './plan-order.js?v=517';
-const UX_V516 = './ux-v516.js?v=516';
+const UX_V516 = './ux-v516.js?v=520';
 const UX_V517 = './ux-v517.js?v=517';
 const UX_V518 = './ux-v518.js?v=518';
-const UX_V519 = './ux-v519.js?v=519';
+const UX_V519 = './ux-v519.js?v=520';
 const ASSETS = ['./', './index.html', './plan-sync.js?v=517', STOCK_CONTROLS, STOCK_UI, PLAN_ORDER, UX_V516, UX_V517, UX_V518, UX_V519, './app.js?v=511', './yesterday-ui.js?v=513', './pantry-export.js?v=514', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -40,7 +40,7 @@ async function pageWithStockControls(request) {
 
   if (!response) return Response.error();
   let html = await response.text();
-  html = html.replace(/v5\.1\.\d+/g, 'v5.1.19');
+  html = html.replace(/v5\.1\.\d+/g, 'v5.1.20');
 
   const scripts = [
     ['stock-buttons.js', STOCK_CONTROLS],
