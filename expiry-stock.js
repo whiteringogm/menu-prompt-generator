@@ -40,7 +40,10 @@
     if (!source.includes('【今日食べるもの】')) return source;
     const marker = '\n\n' + SECTION_MARKER + '\n';
     const start = source.indexOf(marker);
-    const base = start >= 0 ? source.slice(0, start) : source;
+    // Remove either the old end-of-text block or an already inserted inline block.
+    const nextSection = start >= 0 ? source.indexOf('\n\n【今週の候補】', start + marker.length) : -1;
+    const base = start < 0 ? source : nextSection >= 0
+      ? source.slice(0, start) + source.slice(nextSection) : source.slice(0, start);
     const { urgent, upcoming } = Core.classify(readStored(), dateKey(), EARLY_DAYS, URGENT_DAYS);
     if (!urgent.length && !upcoming.length) return base;
     const lines = [
@@ -53,7 +56,11 @@
       '※参考品は献立に自然に合う場合のみ採用し、消費を急がない。数量は在庫数であり、各品を一食の主菜や主食と決めつけない。タグなしは品名から用途を判断する。',
       '※同じ商品が手動リストにもあれば、二重の在庫として数えない。',
     ];
-    return base + '\n\n' + lines.join('\n');
+    const insertion = '\n\n【今週の候補】';
+    const section = '\n\n' + lines.join('\n');
+    return base.includes(insertion)
+      ? base.replace(insertion, section + insertion)
+      : base + section;
   }
 
   function patchOutput() {
@@ -97,8 +104,8 @@
     section.className = 'card';
     section.id = 'expiryStockSection';
     section.innerHTML = [
-      '<summary>賞味期限ストック（一括同期）</summary>',
-      '<p class="help">期限管理の最新版を丸ごと貼り付けて同期。普段の買い物や今週の候補へのタグ入力は不要です。データはこの端末内に保存されます。</p>',
+      '<summary>賞味期限ストック（一括同期）<span id="expiryStockCount" class="count"></span></summary>',
+      '<p class="help">期限管理の最新版を丸ごと貼り付け、確認後に「この一覧に同期」を押すと保存されます。普段の買い物や今週の候補へのタグ入力は不要です。データはこの端末内に保存されます。</p>',
       '<p class="mini">形式：期限 | タグ（省略可） | 品名 | 数量。期限は YYYY-MM または YYYY-MM-DD。年月のみの期限は表示を保持し、日数判定だけ月末扱い。</p>',
       '<label for="expiryStockPaste">期限チェックリストを貼り付け</label>',
       '<textarea id="expiryStockPaste" rows="6" placeholder="2027-03 | 間食 | サンプル菓子 | 1個&#10;2027-04-05 | サンプル食品 | 2個"></textarea>',
@@ -108,6 +115,14 @@
       '<p class="mini" id="expiryStockSaved" aria-live="polite"></p>',
     ].join('');
     anchor.after(section);
+    const output = $('outputText');
+    if (output && !$('expiryStockPromptStatus')) {
+      const status = document.createElement('p');
+      status.id = 'expiryStockPromptStatus';
+      status.className = 'mini';
+      status.setAttribute('aria-live', 'polite');
+      output.before(status);
+    }
   }
 
   function statusText(message) {
@@ -118,6 +133,10 @@
   function showStored() {
     const records = readStored();
     const active = Core.classify(records, dateKey(), EARLY_DAYS, URGENT_DAYS);
+    const count = $('expiryStockCount');
+    if (count) count.textContent = '保存 ' + records.length + '件';
+    const promptStatus = $('expiryStockPromptStatus');
+    if (promptStatus) promptStatus.textContent = '期限ストック：保存 ' + records.length + '件／相談文へ ' + (active.urgent.length + active.upcoming.length) + '件反映（期限注意 ' + active.urgent.length + '件、参考 ' + active.upcoming.length + '件）。「AIへの指示文」ではなく、下の生成結果に表示されます。';
     statusText('保存済み ' + records.length + '件 / 相談文の期限注意 ' + active.urgent.length + '件 / 参考 ' + active.upcoming.length + '件');
   }
 
@@ -179,6 +198,7 @@
       preview();
       showStored();
       refreshOutput();
+      statusText('同期完了：' + parsed.records.length + '件を保存しました。相談文に反映済みです。');
     } catch (error) {
       console.error('expiry stock sync failed', error);
       statusText('同期できませんでした。端末の保存領域を確認してください。');
