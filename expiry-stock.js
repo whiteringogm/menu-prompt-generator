@@ -64,20 +64,27 @@
   }
 
   function patchOutput() {
-    const previous = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
-    if (!previous?.get || !previous?.set) return;
-    Object.defineProperty(HTMLTextAreaElement.prototype, 'value', {
-      configurable: previous.configurable,
-      enumerable: previous.enumerable,
-      get: previous.get,
+    const output = $('outputText');
+    if (!output || Object.getOwnPropertyDescriptor(output, 'value')) return;
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+    if (!descriptor?.get || !descriptor?.set) return;
+
+    // Other legacy modules replace HTMLTextAreaElement.prototype.value *after*
+    // DOMContentLoaded. An instance accessor runs first regardless of when
+    // those prototype patches are installed, so generated text cannot skip us.
+    Object.defineProperty(output, 'value', {
+      configurable: true,
+      enumerable: descriptor.enumerable,
+      get() {
+        const latest = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+        return latest.get.call(this);
+      },
       set(value) {
-        const result = previous.set.call(this, value);
-        if (this.id === 'outputText') {
-          const current = previous.get.call(this);
-          const decorated = injectIntoOutput(current);
-          if (current !== decorated) previous.set.call(this, decorated);
-        }
-        return result;
+        const latest = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+        latest.set.call(this, value);
+        const current = latest.get.call(this);
+        const decorated = injectIntoOutput(current);
+        if (current !== decorated) latest.set.call(this, decorated);
       },
     });
   }
@@ -135,9 +142,17 @@
     const active = Core.classify(records, dateKey(), EARLY_DAYS, URGENT_DAYS);
     const count = $('expiryStockCount');
     if (count) count.textContent = '保存 ' + records.length + '件';
+    const expected = [...active.urgent, ...active.upcoming];
+    const generated = $('outputText')?.value || '';
+    const actual = expected.filter((item) => generated.includes(itemLabel(item))).length;
     const promptStatus = $('expiryStockPromptStatus');
-    if (promptStatus) promptStatus.textContent = '期限ストック：保存 ' + records.length + '件／相談文へ ' + (active.urgent.length + active.upcoming.length) + '件反映（期限注意 ' + active.urgent.length + '件、参考 ' + active.upcoming.length + '件）。「AIへの指示文」ではなく、下の生成結果に表示されます。';
-    statusText('保存済み ' + records.length + '件 / 相談文の期限注意 ' + active.urgent.length + '件 / 参考 ' + active.upcoming.length + '件');
+    if (promptStatus) {
+      const match = actual === expected.length;
+      promptStatus.textContent = '期限ストック：保存 ' + records.length + '件／対象 ' + expected.length + '件／本文に実際に表示 ' + actual + '件'
+        + (match ? '。' : '。表示に差があるため生成結果を確認してください。')
+        + '「AIへの指示文」の編集欄ではなく、下の相談文に表示されます。';
+    }
+    statusText('保存済み ' + records.length + '件 / 対象 ' + expected.length + '件 / 本文表示 ' + actual + '件');
   }
 
   function preview() {
@@ -196,9 +211,9 @@
       writeStored(parsed.records);
       $('expiryStockPaste').value = '';
       preview();
-      showStored();
       refreshOutput();
-      statusText('同期完了：' + parsed.records.length + '件を保存しました。相談文に反映済みです。');
+      showStored();
+      statusText('同期完了：' + parsed.records.length + '件を保存しました。');
     } catch (error) {
       console.error('expiry stock sync failed', error);
       statusText('同期できませんでした。端末の保存領域を確認してください。');
@@ -214,8 +229,8 @@
           const data = JSON.parse(reader.result);
           if (!Array.isArray(data?.expiryStock)) return; // Old backups do not erase expiry data.
           writeStored(data.expiryStock);
-          showStored();
           refreshOutput();
+          showStored();
         } catch (error) {
           console.warn('expiry stock backup import failed', error);
         }
@@ -230,15 +245,15 @@
     insertUI();
     $('expiryStockPaste')?.addEventListener('input', preview);
     $('expiryStockSync')?.addEventListener('click', syncAll);
-    ['prevDay', 'nextDay', 'todayBtn', 'dateInput'].forEach((id) => {
+    ['prevDay', 'nextDay', 'todayBtn', 'dateInput', 'generateText', 'copyText'].forEach((id) => {
       $(id)?.addEventListener(id === 'dateInput' ? 'change' : 'click', () => setTimeout(() => {
-        showStored();
         refreshOutput();
+        showStored();
       }, 0));
     });
     installBackupImport();
-    showStored();
     refreshOutput();
+    showStored();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });

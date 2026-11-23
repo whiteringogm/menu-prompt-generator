@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 'v5.1.23';
+  const VERSION = 'v5.1.24';
   const GROUP_TAGS = ['期限注意', '今週の候補'];
   let scheduled = false;
 
