@@ -7,6 +7,7 @@ function setup() {
   const handlers = {};
   const storage = new Map();
   const events = [];
+  const inputHandlers = {};
   class FakeTextarea {
     constructor(id) {
       this.id = id;
@@ -21,7 +22,7 @@ function setup() {
   });
 
   const output = new FakeTextarea('outputText');
-  const input = { value: '2026-11-24', addEventListener() {} };
+  const input = { value: '2026-11-24', addEventListener(name, fn) { inputHandlers[name] = fn; } };
   const promptStatus = { textContent: '' };
   const elements = {
     outputText: output,
@@ -56,7 +57,13 @@ function setup() {
 
   run('expiry-stock.js');
   (handlers.DOMContentLoaded || []).forEach((fn) => fn());
-  return { FakeTextarea, output, input, promptStatus, elements, context };
+  return {
+    FakeTextarea, output, input, promptStatus, elements, context,
+    dateChanged() {
+      inputHandlers.change();
+      events.splice(0).forEach((fn) => fn());
+    },
+  };
 }
 
 test('expiry output remains visible after legacy modules patch the textarea prototype later', () => {
@@ -97,13 +104,17 @@ test('expiry output remains visible after legacy modules patch the textarea prot
 });
 
 test('changing selected date changes active expiry entries and verifies actual count', () => {
-  const { input, output, promptStatus } = setup();
+  const { input, output, promptStatus, dateChanged } = setup();
   const source = '【今日食べるもの】\n朝:未定\n\n【期限注意】\nなし\n\n【今週の候補】\nなし';
   output.value = source;
   assert.match(output.value, /サンプル菓子/);
-  input.value = '2027-03-01';
-  output.value = output.value;
+  input.value = '2026-11-10';
+  dateChanged();
   assert.doesNotMatch(output.value, /サンプル菓子/);
+  assert.match(output.value, /サンプル麺/);
+  assert.match(promptStatus.textContent, /本文に実際に表示 1件/);
+  input.value = '2027-03-25';
+  dateChanged();
   assert.match(output.value, /サンプル調味料/);
-  assert.match(promptStatus.textContent, /本文に実際に表示 2件/);
+  assert.match(promptStatus.textContent, /本文に実際に表示 3件/);
 });
