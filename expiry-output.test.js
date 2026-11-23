@@ -67,7 +67,7 @@ function setup() {
 }
 
 test('expiry output remains visible after legacy modules patch the textarea prototype later', () => {
-  const { FakeTextarea, output, promptStatus } = setup();
+  const { FakeTextarea, output, promptStatus, dateChanged } = setup();
   const native = Object.getOwnPropertyDescriptor(FakeTextarea.prototype, 'value');
 
   // Mirrors legacy modules that capture and replace the prototype accessor
@@ -89,6 +89,7 @@ test('expiry output remains visible after legacy modules patch the textarea prot
 
   const input = '11月24日(火)\n\n【今日食べるもの】\n朝:未定\n\n【期限注意】\nなし\n\n【今週の候補】\nなし\n\n【昨日食べたもの】\n保存なし';
   output.value = input;
+  dateChanged(); // Recompute the visible-count indicator after output generation.
   const once = output.value;
   assert.match(once, /【期限ストック（自動連携）】/);
   assert.match(once, /2026-11-30 \| 主食 \| サンプル麺 \| 1個/);
