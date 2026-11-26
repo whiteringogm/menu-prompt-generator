@@ -113,7 +113,7 @@
     section.innerHTML = [
       '<summary>賞味期限ストック（一括同期）<span id="expiryStockCount" class="count"></span></summary>',
       '<p class="help">期限管理の最新版を丸ごと貼り付け、確認後に「この一覧に同期」を押すと保存されます。普段の買い物や今週の候補へのタグ入力は不要です。データはこの端末内に保存されます。</p>',
-      '<p class="mini">形式：期限 | タグ（省略可） | 品名 | 数量。期限は YYYY-MM または YYYY-MM-DD。年月のみの期限は表示を保持し、日数判定だけ月末扱い。</p>',
+      '<p class="mini">形式：期限 | タグ（省略可） | 品名 | 数量。数量は自由記述（例：1人前×2、小袋6個、固形80g×4）。期限は YYYY-MM または YYYY-MM-DD。年月のみの期限は表示を保持し、日数判定だけ月末扱い。</p>',
       '<label for="expiryStockPaste">期限チェックリストを貼り付け</label>',
       '<textarea id="expiryStockPaste" rows="6" placeholder="2027-03 | 間食 | サンプル菓子 | 1個&#10;2027-04-05 | サンプル食品 | 2個"></textarea>',
       '<div id="expiryStockPreview" class="empty" aria-live="polite">一覧を貼り付けると差分を表示します。</div>',

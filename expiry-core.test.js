@@ -54,3 +54,20 @@ test('time bands exclude far-ahead stock and include past-due', () => {
   assert.equal(result.urgent.length, 1);
   assert.equal(result.upcoming.length, 1);
 });
+
+test('quantity accepts descriptive text without losing packaging or weight details', () => {
+  const quantities = ['16食分', '10個', '1人前×2', '小袋6個', '1袋51g', '180g×5', '固形80g×4', '1袋(2人前)', '13枚×3', '固形210g', '残り 約半袋', '0.5袋', '不明'];
+  const parsed = core.parsePastedList(quantities.map((quantity, i) =>
+    '2027-01 | 間食 | サンプル' + String(i).padStart(2, '0') + ' | ' + quantity
+  ).join('\n'));
+  assert.deepEqual(parsed.errors, []);
+  assert.equal(parsed.records.length, quantities.length);
+  assert.deepEqual(parsed.records.map(item => item.quantity), quantities);
+  assert.deepEqual(core.normalizeRecords(JSON.parse(JSON.stringify(parsed.records))), parsed.records);
+  assert.equal(core.classify(parsed.records, '2027-01-01').upcoming.length, quantities.length);
+  assert.equal(core.diffRecords(parsed.records, parsed.records).changed, 0);
+  const updated = parsed.records.map((item, i) => i === 0 ? { ...item, quantity: '残り8食分' } : item);
+  assert.deepEqual(core.diffRecords(parsed.records, updated), { added: 0, changed: 1, removed: 0, unchanged: quantities.length - 1 });
+  assert.equal(core.parsePastedList('2027-01 | 間食 | サンプル | ').records[0].quantity, '1個');
+  assert.equal(core.parsePastedList('2027-01 | 間食 | サンプル | 1袋 | 2個').errors.length, 1);
+});

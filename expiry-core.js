@@ -29,7 +29,8 @@
   }
 
   function quantityValid(value) {
-    return /^[1-9]\d*(?:\s*[^\d|]+)?$/.test(String(value).trim());
+    // Quantity is descriptive inventory text, not an arithmetic field.
+    return String(value).trim().length > 0 && !/[|\x00-\x1f\x7f]/.test(String(value));
   }
 
   function normalizeRecord(value) {
@@ -42,7 +43,7 @@
       expiry,
       tag: TAG_SET.has(value.tag) ? value.tag : null,
       name,
-      quantity: quantity.replace(/\s+/g, ''),
+      quantity,
     };
   }
 
